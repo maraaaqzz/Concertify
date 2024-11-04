@@ -2,10 +2,26 @@ import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
-import { Slot, Stack, SplashScreen } from 'expo-router'
+import { Stack, SplashScreen } from 'expo-router'
 import "../global.css";
 
 SplashScreen.preventAutoHideAsync();
+
+const styles = StyleSheet.create({
+  headerTitle: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+});
+
+const commonHeaderOptions = {
+  headerShown: true,
+  headerTransparent: true,
+  headerTitleAlign: 'center',
+  headerTitleStyle: styles.headerTitle,
+  headerTintColor: '#FFFFFF', // Arrow color
+};
 
 const RootLayout = () => {
   const [fontsLoaded, error] = useFonts({
@@ -40,17 +56,11 @@ const RootLayout = () => {
       />
       <Stack.Screen 
         name="profile" 
-        options={{ headerShown: true,           
-          headerTransparent: true,   
-          headerTitleAlign: 'center',   
-          headerTitleStyle: 
-          { 
-            color: 'white',
-            fontSize: 20,
-            fontWeight: 'bold'  
-          },
-          headerTintColor: '#FFFFFF' // arrow on the profile page
-        }} 
+        options={commonHeaderOptions}
+      />
+      <Stack.Screen 
+       name="concert" 
+       options={commonHeaderOptions}
       />
     </Stack>
   )
