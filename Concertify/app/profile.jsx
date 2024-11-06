@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from "expo-linear-gradient";
 import { Text, TextInput, View, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
 import { images } from "../constants";
