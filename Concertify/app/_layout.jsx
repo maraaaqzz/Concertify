@@ -62,6 +62,10 @@ const RootLayout = () => {
        name="concert" 
        options={commonHeaderOptions}
       />
+      <Stack.Screen 
+       name="login" 
+       options={commonHeaderOptions}
+      />
     </Stack>
   )
 }
