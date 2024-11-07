@@ -1,12 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, KeyboardAvoidingView } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { LinearGradient } from "expo-linear-gradient";
 import { Text, TextInput, View, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
 import { images } from "../constants";
-import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import { FontAwesome, MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { FIREBASE_AUTH, FIRESTORE_DB} from '../services/firebaseConfig'
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from  'firebase/auth'
+import { setDoc, doc } from 'firebase/firestore';
 
 const LogIn = () => {
   const [isSignIn, setIsSignIn] = useState(true); 
+
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, isLoading] = useState(false);
+
+  const submitSignin = async() => {
+    if(!email || !password){
+        Alert.alert('Error', 'Please fill in all the fields')
+      }
+      isLoading(true);
+      console.log(email);
+      console.log(password);
+      try{
+        await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
+        console.log('User signed in successfully')
+        router.replace('./(tabs)/home')
+      }catch (error) {
+        console.error("Error signing in: ", error);
+      }finally{
+        isLoading(false)
+      }
+  }
+
+  const submitSignUp = async() => {
+    if(!username || !email || !password){
+      Alert.alert('Error', 'Please fill in all the fields')
+    }
+    isLoading(true);
+    try{
+      const userCredential = await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
+      const user = userCredential.user;
+
+      try {
+        const docRef = await setDoc(doc(FIRESTORE_DB, "users", userCredential?.user?.uid), {
+          username: username,
+          email: email,
+          password: password,
+          userId: userCredential?.user?.uid,
+          reateAt: new Date(),
+        });
+      }catch (e){
+          console.error("Error adding document: ", e)
+      }
+      console.log("User created and data added to firebase")
+      router.replace('./(tabs)/home')
+    }catch(error){
+      console.error("Error signing up", error.message)
+    }finally{
+      isLoading(false)
+    }
+  }
+
+  const [showPassword, setShowPassword] = useState(false);
+  const toggleShowPassword = () => {
+      setShowPassword(!showPassword);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -45,29 +106,37 @@ const LogIn = () => {
           <>
             <View style={styles.inputContainer}>
               <TextInput 
+                value={email}
                 style={styles.input}
                 placeholder="Email or username"
                 placeholderTextColor="#999"
+                onChangeText={(text) => setEmail(text)}
               />
               <FontAwesome name="envelope" size={20} color="#999" style={styles.icon} />
             </View>
 
             <View style={styles.inputContainer}>
               <TextInput 
+                value={password}
                 style={styles.input}
                 placeholder="Password"
                 placeholderTextColor="#999"
-                secureTextEntry
+                onChangeText={(text) => setPassword(text)}
+                secureTextEntry={showPassword}
               />
               <MaterialIcons 
-                name="visibility-off" 
+                name={showPassword ? 'visibility-off' : 'visibility'}
                 size={20} 
                 color="#999" 
-                style={styles.icon} 
+                style={styles.icon}
+                onPress={toggleShowPassword}
               />
             </View>
 
-            <TouchableOpacity style={styles.loginButton}>
+            <TouchableOpacity 
+              onPress={submitSignin}
+              isLoading={loading}
+              style={styles.loginButton}>
               <Text style={styles.loginButtonText}>LOG IN</Text>
             </TouchableOpacity>
           </>
@@ -77,9 +146,11 @@ const LogIn = () => {
           <>
             <View style={styles.inputContainer}>
               <TextInput 
+                value={username}
                 style={styles.input}
                 placeholder="Username"
                 placeholderTextColor="#999"
+                onChangeText={(text) => setUsername(text)}
               />
               <FontAwesome 
                 name="user" 
@@ -91,9 +162,11 @@ const LogIn = () => {
 
             <View style={styles.inputContainer}>
               <TextInput 
+                value={email}
                 style={styles.input}
                 placeholder="Email"
                 placeholderTextColor="#999"
+                onChangeText={(text) => setEmail(text)}
               />
               <FontAwesome 
                 name="envelope" 
@@ -105,9 +178,11 @@ const LogIn = () => {
 
             <View style={styles.inputContainer}>
               <TextInput 
+                value={password}
                 style={styles.input}
                 placeholder="Password"
                 placeholderTextColor="#999"
+                onChangeText={(text) => setPassword(text)}
                 secureTextEntry // hide the password
               />
               <MaterialIcons 
@@ -118,7 +193,9 @@ const LogIn = () => {
               />
             </View>
 
-            <TouchableOpacity style={styles.loginButton}>
+            <TouchableOpacity
+              onPress={submitSignUp} 
+              style={styles.loginButton}>
               <Text style={styles.loginButtonText}>SIGN UP</Text>
             </TouchableOpacity>
           </>

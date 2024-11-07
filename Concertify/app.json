@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Concertify",
-    "slug": "Concertify",
+    "slug": "concertify",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -31,6 +31,12 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5c3b5523-8e69-40ce-9ec9-d23a7eec87f2"
+      }
+    },
+    "owner": "mewfacts"
   }
 }
