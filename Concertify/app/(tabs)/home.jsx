@@ -6,8 +6,23 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { useRouter } from 'expo-router'; 
 import { LinearGradient } from "expo-linear-gradient";
 import { SectionContainer } from "../../components/SectionContainer";
+import { onAuthStateChanged } from "firebase/auth";
+import { FIREBASE_AUTH } from '../../services/firebaseConfig';
 
 const HomeTab = () => {
+  //this function lets the user acces the profile if they are logged in
+  const goToSignInIfLoggedOut = () =>{
+    //this verifies if user is logged in
+    onAuthStateChanged(FIREBASE_AUTH, (user) => {
+      if (user) {
+        const uid = user.uid;
+        router.push('/profile'); //if user is logged in we go to profile
+      } else {
+        router.push('/login'); // if user is logged out we go to login
+      }
+    });
+  }
+
   const router = useRouter();
 
   const topConcerts = [
@@ -34,10 +49,6 @@ const HomeTab = () => {
   };
   const message = greetingMessage();
 
-  const navigateToProfile = () => {
-    router.push('/profile'); 
-  };
-
   return (
     <LinearGradient 
       colors={['#040306', '#131624']}
@@ -50,7 +61,7 @@ const HomeTab = () => {
               </Text>
             
               <View >
-                <TouchableOpacity onPress={navigateToProfile} style={{ marginBottom: 5, marginRight: 15}} > 
+                <TouchableOpacity onPress={goToSignInIfLoggedOut} style={{ marginBottom: 5, marginRight: 15}} > 
                   <MaterialCommunityIcons
                     name="account-circle" 
                     size={30}

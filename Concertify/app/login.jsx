@@ -6,8 +6,9 @@ import { Text, TextInput, View, StyleSheet, ImageBackground, TouchableOpacity } 
 import { images } from "../constants";
 import { FontAwesome, MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { FIREBASE_AUTH, FIRESTORE_DB} from '../services/firebaseConfig'
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from  'firebase/auth'
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, setPersistence, indexedDBLocalPersistence, auth} from  'firebase/auth'
 import { setDoc, doc } from 'firebase/firestore';
+
 
 const LogIn = () => {
   const [isSignIn, setIsSignIn] = useState(true); 
@@ -16,6 +17,7 @@ const LogIn = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, isLoading] = useState(false);
+  
 
   const submitSignin = async() => {
     if(!email || !password){
@@ -25,9 +27,11 @@ const LogIn = () => {
       console.log(email);
       console.log(password);
       try{
-        await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
-        console.log('User signed in successfully')
-        router.replace('./(tabs)/home')
+        const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
+        const user = userCredential.user;
+
+        console.log('User signed in successfully');
+        router.replace('./(tabs)/home');
       }catch (error) {
         console.error("Error signing in: ", error);
       }finally{
