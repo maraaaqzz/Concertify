@@ -31,7 +31,7 @@ const TabsLayout = () => {
                     backgroundColor: "#131624",
                     borderTopWidth: 1,
                     borderTopColor: "#232533",
-                    height: 84,
+                    height: 84,s
                   },
             }}
         >
@@ -50,7 +50,7 @@ const TabsLayout = () => {
             />
 
             <Tabs.Screen 
-                name="chat"
+                name="threads"
                 options={{
                     headerShown: false,
                     tabBarIcon: ({color, focused}) => (

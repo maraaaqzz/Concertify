@@ -1,12 +1,12 @@
-import React, { useState, KeyboardAvoidingView } from 'react';
+import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { LinearGradient } from "expo-linear-gradient";
 import { Text, TextInput, View, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
 import { images } from "../constants";
-import { FontAwesome, MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { FIREBASE_AUTH, FIRESTORE_DB} from '../services/firebaseConfig'
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, setPersistence, indexedDBLocalPersistence, auth} from  'firebase/auth'
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword} from  'firebase/auth'
 import { setDoc, doc } from 'firebase/firestore';
 
 
@@ -49,12 +49,12 @@ const LogIn = () => {
       const user = userCredential.user;
 
       try {
-        const docRef = await setDoc(doc(FIRESTORE_DB, "users", userCredential?.user?.uid), {
+        await setDoc(doc(FIRESTORE_DB, "users", userCredential?.user?.uid), {
           username: username,
           email: email,
           password: password,
           userId: userCredential?.user?.uid,
-          reateAt: new Date(),
+          createAt: new Date(),
         });
       }catch (e){
           console.error("Error adding document: ", e)
