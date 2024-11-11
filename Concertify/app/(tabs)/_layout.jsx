@@ -50,7 +50,7 @@ const TabsLayout = () => {
             />
 
             <Tabs.Screen 
-                name="chat"
+                name="threads"
                 options={{
                     headerShown: false,
                     tabBarIcon: ({color, focused}) => (
