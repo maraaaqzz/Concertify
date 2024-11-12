@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { router, useRouter } from 'expo-router';
+import { router, useGlobalSearchParams, useLocalSearchParams } from 'expo-router';
 import { Text, FlatList, TextInput, StyleSheet, View, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -12,15 +12,15 @@ const ThreadsTab = () => {
   const [username, setUsername] = useState('');
   const userId = FIREBASE_AUTH.currentUser?.uid;
 
+  const {concertId} = useGlobalSearchParams();
+
   // Fetch current user’s username
   useEffect(() => {
-    console.log(userId);
     const fetchUsername = async () => {
       if (userId) {
         const userDoc = await getDoc(doc(FIRESTORE_DB, 'users', userId));
         if (userDoc.exists()) {
           setUsername(userDoc.data().username);
-          console.log(username);
         }
       }
       else{
@@ -44,8 +44,7 @@ const ThreadsTab = () => {
   // Function to add a post
   const addPost = async (text) => {
     try {
-      
-      const postRef = await addDoc(collection(FIRESTORE_DB, 'threads'), {
+      const postRef = await addDoc(collection(FIRESTORE_DB, 'concerts', concertId, 'threads'), {
         username: username,
         content: text,
         timestamp: new Date(),
@@ -63,7 +62,7 @@ const ThreadsTab = () => {
 
   // Function to fetch posts
   useEffect(() => {
-    const postsQuery = query(collection(FIRESTORE_DB, 'threads'), orderBy('timestamp', 'desc'));
+    const postsQuery = query(collection(FIRESTORE_DB,'concerts', concertId, 'threads'), orderBy('timestamp', 'desc'));
     const unsubscribe = onSnapshot(postsQuery, (querySnapshot) => {
       const postsArray = querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -76,7 +75,7 @@ const ThreadsTab = () => {
 
   // Function to handle like button press
   const handleLikeToggle = async (postId, isLiked) => {
-    const postRef = doc(FIRESTORE_DB, 'threads', postId);
+    const postRef = doc(FIRESTORE_DB, 'concerts', concertId, 'threads', postId);
 
     if (isLiked) {
       // Unlike: remove the user's ID from likedBy and decrement likes count

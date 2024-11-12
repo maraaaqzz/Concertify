@@ -15,6 +15,7 @@ const LogIn = () => {
 
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
+  const [name, setName] = useState('')
   const [password, setPassword] = useState('');
   const [loading, isLoading] = useState(false);
   
@@ -28,9 +29,7 @@ const LogIn = () => {
       try{
         const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
         const user = userCredential.user;
-
-        console.log('User signed in successfully');
-        router.back();
+        router.dismissAll();
       }catch (error) {
         console.error("Error signing in: ", error);
       }finally{
@@ -50,17 +49,19 @@ const LogIn = () => {
 
       try {
         await setDoc(doc(FIRESTORE_DB, "users", userCredential?.user?.uid), {
+          userId: userCredential?.user?.uid,
           username: username,
+          name: name,
           email: email,
           password: password,
-          userId: userCredential?.user?.uid,
+          concerts: [],
           createAt: new Date(),
         });
       }catch (e){
           console.error("Error adding document: ", e)
       }
       console.log("User created and data added to firebase")
-      router.replace('./(tabs)/home')
+      router.dismissAll();
     }catch(error){
       console.error("Error signing up", error.message)
     }finally{
@@ -155,6 +156,22 @@ const LogIn = () => {
                 placeholder="Username"
                 placeholderTextColor="#999"
                 onChangeText={(text) => setUsername(text)}
+              />
+              <FontAwesome 
+                name="user" 
+                size={20} 
+                color="#999" 
+                style={styles.icon} 
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <TextInput 
+                value={name}
+                style={styles.input}
+                placeholder="Name"
+                placeholderTextColor="#999"
+                onChangeText={(text) => setName(text)}
               />
               <FontAwesome 
                 name="user" 

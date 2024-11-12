@@ -20,6 +20,7 @@ export const ConcertCard = ({ item }) => {
         router.push({
             pathname: '/concert', 
             params: {
+                concertId: item.id,
                 name: item.name,
                 imageKey: item.imageKey,
                 photoUrl: item.photoUrl,

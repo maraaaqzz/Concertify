@@ -2,7 +2,7 @@ import { View, Text, FlatList, Image, TouchableOpacity, ScrollView  } from 'reac
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useRouter, router } from 'expo-router'; 
+import { router } from 'expo-router'; 
 import { LinearGradient } from "expo-linear-gradient";
 import { SectionContainer } from "../components/SectionContainer";
 import { onAuthStateChanged } from "firebase/auth";
@@ -23,8 +23,6 @@ const HomeTab = () => {
       }
     });
   }
-
-  const router = useRouter();
   const [concerts, setConcerts] = useState([])
   
   const fetchConcerts = async () =>{

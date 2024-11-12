@@ -8,13 +8,16 @@ import { FIREBASE_AUTH } from '../services/firebaseConfig';
 import { onAuthStateChanged } from "firebase/auth";
 
 const Concert = () => {
-  const { name, photoUrl, location, date, time } = useLocalSearchParams();
+  const { concertId, name, photoUrl, location, date, time } = useLocalSearchParams();
   const router = useRouter();
 
   const goToConcertPage = () =>{
     onAuthStateChanged(FIREBASE_AUTH, (user) => {
       if (user) {
-        router.push('/concertPage'); //if user is logged in we go to profile
+        router.push({
+          pathname: '/concertPage',
+          params: { concertId: concertId },
+        }); //if user is logged in we go to profile
       } else {
         router.push('./login'); // if user is logged out we go to login
       }
