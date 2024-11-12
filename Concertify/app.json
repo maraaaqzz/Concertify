@@ -34,9 +34,12 @@
     },
     "extra": {
       "eas": {
-        "projectId": "5c3b5523-8e69-40ce-9ec9-d23a7eec87f2"
+        "projectId": "82d8eebc-548d-4a1b-9c19-0c5f32f94ffc"
+      },
+      "router": {
+        "origin": false
       }
     },
-    "owner": "mewfacts"
+    "owner": "biencutica"
   }
 }
