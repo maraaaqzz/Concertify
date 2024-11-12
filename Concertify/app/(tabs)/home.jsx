@@ -1,13 +1,14 @@
 import { View, Text, FlatList, Image, TouchableOpacity, ScrollView  } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { images }  from "../../constants";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useRouter, router } from 'expo-router'; 
 import { LinearGradient } from "expo-linear-gradient";
 import { SectionContainer } from "../../components/SectionContainer";
 import { onAuthStateChanged } from "firebase/auth";
-import { FIREBASE_AUTH } from '../../services/firebaseConfig';
+import { FIREBASE_APP, FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';
+import {useState, useEffect} from 'react'
+import { collection, getDoc, getDocs } from 'firebase/firestore';
 
 const HomeTab = () => {
   //this function lets the user acces the profile if they are logged in
@@ -24,18 +25,24 @@ const HomeTab = () => {
   }
 
   const router = useRouter();
+  const [concerts, setConcerts] = useState([])
+  
+  const fetchConcerts = async () =>{
+    try{
+      const snapshot = await getDocs(collection(FIRESTORE_DB, 'concerts'))
+      const concertsData = snapshot.docs.map(doc =>({
+        id: doc.id,
+        ...doc.data()
+      }))
+      setConcerts(concertsData)
+    } catch(error){
+      console.error("Error fetching concerts: ", error)
+    }
+  }
 
-  const topConcerts = [
-    { name: "Lana Del Rey", image: images.lanaDelRey, imageKey: 'lanaDelRey' },
-    { name: "Billie Eilish", image: images.billie, imageKey: 'billie' },
-    { name: "Random", image: images.concert, imageKey: 'concert' },
-  ];
-
-  const upcomingConcerts = [
-    { name: "Arctic Monkeys", image: images.am, imageKey: 'am' },
-    { name: "The Weeknd", image: images.wknd, imageKey: 'wknd' },
-    { name: "Random", image: images.concert, imageKey: 'concert' },
-  ];
+  useEffect(() =>{
+    fetchConcerts()
+   }, [])
 
   const greetingMessage = () => {
     const currentTime = new Date().getHours();
@@ -47,6 +54,7 @@ const HomeTab = () => {
       return "Good Evening";
     }
   };
+
   const message = greetingMessage();
 
   return (
@@ -72,10 +80,10 @@ const HomeTab = () => {
           </View>
       
           <View>
-            <SectionContainer title="Your Concerts" data={topConcerts} />
+            <SectionContainer title="Your Concerts" data={concerts} />
           </View>
           <View >
-            <SectionContainer title="Upcoming Live" data={upcomingConcerts} />
+            <SectionContainer title="Upcoming Live" data={concerts} />
           </View>
       </SafeAreaView>
     </LinearGradient>

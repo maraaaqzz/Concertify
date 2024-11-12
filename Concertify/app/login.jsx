@@ -22,10 +22,9 @@ const LogIn = () => {
   const submitSignin = async() => {
     if(!email || !password){
         Alert.alert('Error', 'Please fill in all the fields')
+        return
       }
       isLoading(true);
-      console.log(email);
-      console.log(password);
       try{
         const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
         const user = userCredential.user;
@@ -42,6 +41,7 @@ const LogIn = () => {
   const submitSignUp = async() => {
     if(!username || !email || !password){
       Alert.alert('Error', 'Please fill in all the fields')
+      return 
     }
     isLoading(true);
     try{
@@ -112,7 +112,7 @@ const LogIn = () => {
               <TextInput 
                 value={email}
                 style={styles.input}
-                placeholder="Email or username"
+                placeholder="Email"
                 placeholderTextColor="#999"
                 onChangeText={(text) => setEmail(text)}
               />
