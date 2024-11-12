@@ -13,8 +13,7 @@ const Concert = () => {
 
   const goToConcertPage = () =>{
     router.push({
-      pathname: '/concertPage'
-  });
+      pathname: '/concertPage'});
   }
 
   return (
