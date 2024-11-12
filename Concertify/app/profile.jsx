@@ -10,7 +10,7 @@ const Profile = () => {
   const router = useRouter();
   
   //this function signs out the user
-  signOutUser = async () => {
+  const signOutUser = async () => {
     try {
         await FIREBASE_AUTH.signOut();
         router.replace('../home')

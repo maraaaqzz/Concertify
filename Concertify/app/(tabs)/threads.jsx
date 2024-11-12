@@ -14,31 +14,37 @@ const ThreadsTab = () => {
 
   // Fetch current user’s username
   useEffect(() => {
+    console.log(userId);
     const fetchUsername = async () => {
       if (userId) {
         const userDoc = await getDoc(doc(FIRESTORE_DB, 'users', userId));
         if (userDoc.exists()) {
           setUsername(userDoc.data().username);
+          console.log(username);
         }
+      }
+      else{
+        console.log("error");
       }
     };
     fetchUsername();
   }, [userId]);
 
-  const fetchComments = async (postId) => {
-    const commentsCollection = collection(FIRESTORE_DB, 'threads', postId, 'comments');
-    const commentsQuery = query(commentsCollection, orderBy('timestamp', 'asc'));
-    const querySnapshot = await getDocs(commentsQuery);
+  // const fetchComments = async (postId) => {
+  //   const commentsCollection = collection(FIRESTORE_DB, 'threads', postId, 'comments');
+  //   const commentsQuery = query(commentsCollection, orderBy('timestamp', 'asc'));
+  //   const querySnapshot = await getDocs(commentsQuery);
   
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-  };
+  //   return querySnapshot.docs.map(doc => ({
+  //     id: doc.id,
+  //     ...doc.data(),
+  //   }));
+  // };
 
   // Function to add a post
   const addPost = async (text) => {
     try {
+      
       const postRef = await addDoc(collection(FIRESTORE_DB, 'threads'), {
         username: username,
         content: text,

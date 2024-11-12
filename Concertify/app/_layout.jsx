@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
 });
 
 const commonHeaderOptions = {
-  headerShown: true,
+  headerShown: false,
   headerTransparent: true,
   headerTitleAlign: 'center',
   headerTitleStyle: styles.headerTitle,
@@ -55,11 +55,15 @@ const RootLayout = () => {
         options={{ headerShown: false }} 
       />
       <Stack.Screen 
+        name="concert" 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
         name="profile" 
         options={commonHeaderOptions}
       />
       <Stack.Screen 
-       name="concert" 
+       name="home"
        options={commonHeaderOptions}
       />
       <Stack.Screen 

@@ -1,19 +1,24 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useLocalSearchParams } from 'expo-router';
-import { StyleSheet, Text, Image, View } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { StyleSheet, Text, Image, View, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { FIREBASE_AUTH } from '../services/firebaseConfig';
+import { onAuthStateChanged } from "firebase/auth";
 
 const Concert = () => {
   const { name, photoUrl, location, date, time } = useLocalSearchParams();
   const router = useRouter();
 
   const goToConcertPage = () =>{
-    router.push({
-      pathname: '/concertPage'});
+    onAuthStateChanged(FIREBASE_AUTH, (user) => {
+      if (user) {
+        router.push('/concertPage'); //if user is logged in we go to profile
+      } else {
+        router.push('./login'); // if user is logged out we go to login
+      }
+    });
   }
 
   return (

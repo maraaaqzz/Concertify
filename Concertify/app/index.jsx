@@ -15,12 +15,12 @@ export default function Index() {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1, 
-        duration: 5000,
+        duration: 2000,
         useNativeDriver: true,
       }),
       Animated.timing(scaleAnim, {
         toValue: 1,
-        duration: 5000,
+        duration: 2000,
         easing: Easing.bounce, // Add a bounce effect
         useNativeDriver: true,
       })

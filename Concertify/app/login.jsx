@@ -30,7 +30,7 @@ const LogIn = () => {
         const user = userCredential.user;
 
         console.log('User signed in successfully');
-        router.replace('./(tabs)/home');
+        router.back();
       }catch (error) {
         console.error("Error signing in: ", error);
       }finally{

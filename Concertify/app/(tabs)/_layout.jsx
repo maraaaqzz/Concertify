@@ -36,7 +36,7 @@ const TabsLayout = () => {
             }}
         >
             <Tabs.Screen 
-                name="home"
+                name="concertPage"
                 options={{
                     headerShown: false,
                     tabBarIcon: ({color, focused}) => (
