@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { router, useRouter } from 'expo-router';
 import { Text, FlatList, TextInput, StyleSheet, View, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';
-import { collection, addDoc, onSnapshot, orderBy, query, doc, getDoc, updateDoc, arrayUnion, arrayRemove, increment } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, orderBy, query, doc, getDoc, updateDoc, arrayUnion, arrayRemove, increment, setDoc } from 'firebase/firestore';
 
 const ThreadsTab = () => {
   const [post, setPost] = useState('');
@@ -24,16 +25,30 @@ const ThreadsTab = () => {
     fetchUsername();
   }, [userId]);
 
+  const fetchComments = async (postId) => {
+    const commentsCollection = collection(FIRESTORE_DB, 'threads', postId, 'comments');
+    const commentsQuery = query(commentsCollection, orderBy('timestamp', 'asc'));
+    const querySnapshot = await getDocs(commentsQuery);
+  
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+  };
+
   // Function to add a post
   const addPost = async (text) => {
     try {
-      await addDoc(collection(FIRESTORE_DB, 'threads'), {
+      const postRef = await addDoc(collection(FIRESTORE_DB, 'threads'), {
         username: username,
         content: text,
         timestamp: new Date(),
         likes: 0,  // Initialize with 0 likes
         likedBy: [] // Track users who have liked the post
       });
+      // const commentsCollectionRef = collection(postRef, 'comments');
+      // await setDoc(doc(commentsCollectionRef), {});
+
       setPost('');
     } catch (error) {
       console.error('Error adding post:', error);
@@ -72,15 +87,18 @@ const ThreadsTab = () => {
     }
   };
 
+  
   // Render each post item
   const renderPostItem = ({ item }) => {
     const isLiked = item.likedBy?.includes(userId);
     
     return (
       <View style={styles.postContainer}>
-        <Text style={styles.postUser}>{item.username}</Text>
+        <View style={styles.postMiniContainer}>
+          <Text style={styles.postUser}>{item.username}</Text>
+          <Text style={styles.timestamp}>{new Date(item.timestamp.seconds * 1000).toLocaleString()}</Text>
+        </View>
         <Text style={styles.postContent}>{item.content}</Text>
-        <Text style={styles.timestamp}>{new Date(item.timestamp.seconds * 1000).toLocaleString()}</Text>
         <View style={styles.likeContainer}>
           <TouchableOpacity
             onPress={() => handleLikeToggle(item.id, isLiked)}
@@ -89,6 +107,15 @@ const ThreadsTab = () => {
             <Text style={styles.likeButtonText}>{isLiked ? 'Unlike' : 'Like'}</Text>
           </TouchableOpacity>
           <Text style={styles.likeCount}>{item.likes} {item.likes === 1 ? 'Like' : 'Likes'}</Text>
+          <TouchableOpacity
+            onPress={() => router.push({
+              pathname: `/comments`, 
+              params: {postId: item.id } 
+            })}
+            style={styles.commentButton }
+          >
+            <Text style={styles.likeButtonText}>Comments</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -105,6 +132,8 @@ const ThreadsTab = () => {
             renderItem={renderPostItem}
             contentContainerStyle={styles.postsList}
             onScrollBeginDrag={() => Keyboard.dismiss()}
+            initialNumToRender={5}  
+            maxToRenderPerBatch={10}
           />
 
           {/* Input and Post Button at the Bottom */}
@@ -141,26 +170,31 @@ const styles = StyleSheet.create({
   postContainer: {
     backgroundColor: '#333',
     padding: 15,
-    borderRadius: 10,
+    borderRadius: 20,
     marginBottom: 10,
+  },
+  postMiniContainer:{
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 15
   },
   postUser: {
     color: '#aaa',
-    fontSize: 12,
+    fontSize: 15,
     fontWeight: 'bold',
-    marginBottom: 5,
   },
   postContent: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 19,
     marginBottom: 5,
   },
   timestamp: {
     color: '#bbb',
-    fontSize: 10,
-    alignSelf: 'flex-end',
+    fontSize: 12,
   },
   likeContainer: {
+    justifyContent: 'space-between',
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 10,
@@ -172,6 +206,12 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginRight: 10,
   },
+  commentButton: {
+    backgroundColor: '#A64D79',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+  },
   liked: {
     backgroundColor: '#FF69B4',  // Different color for liked state
   },
@@ -182,21 +222,20 @@ const styles = StyleSheet.create({
   likeCount: {
     color: '#ccc',
     fontSize: 14,
+    flex: 3,
   },
   inputContainer: {
     position: 'absolute',
     bottom: 2,
-    left: 0,
-    right: 0,
+    left: 4,
+    right: 4,
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
     backgroundColor: '#333',
     paddingHorizontal: 15,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
+    borderRadius: 20,
+    borderColor: 'white'
   },
   input: {
     flex: 1,
@@ -219,6 +258,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  commentContainer: {
+    marginTop: 10,
+    paddingLeft: 15,
+    borderLeftWidth: 1,
+    borderLeftColor: '#444',
   },
 });
 

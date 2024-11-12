@@ -3,7 +3,7 @@ import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { images }  from "../../constants";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useRouter } from 'expo-router'; 
+import { useRouter, router } from 'expo-router'; 
 import { LinearGradient } from "expo-linear-gradient";
 import { SectionContainer } from "../../components/SectionContainer";
 import { onAuthStateChanged } from "firebase/auth";
