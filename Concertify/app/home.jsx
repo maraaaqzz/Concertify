@@ -2,11 +2,11 @@ import { View, Text, FlatList, Image, TouchableOpacity, ScrollView  } from 'reac
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useRouter } from 'expo-router'; 
+import { router } from 'expo-router'; 
 import { LinearGradient } from "expo-linear-gradient";
-import { SectionContainer } from "../../components/SectionContainer";
+import { SectionContainer } from "../components/SectionContainer";
 import { onAuthStateChanged } from "firebase/auth";
-import { FIREBASE_APP, FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';
+import { FIREBASE_APP, FIREBASE_AUTH, FIRESTORE_DB } from '../services/firebaseConfig';
 import {useState, useEffect} from 'react'
 import { collection, getDoc, getDocs } from 'firebase/firestore';
 
@@ -17,14 +17,12 @@ const HomeTab = () => {
     onAuthStateChanged(FIREBASE_AUTH, (user) => {
       if (user) {
         const uid = user.uid;
-        router.push('/profile'); //if user is logged in we go to profile
+        router.push('./profile'); //if user is logged in we go to profile
       } else {
-        router.push('/login'); // if user is logged out we go to login
+        router.push('./login'); // if user is logged out we go to login
       }
     });
   }
-
-  const router = useRouter();
   const [concerts, setConcerts] = useState([])
   
   const fetchConcerts = async () =>{

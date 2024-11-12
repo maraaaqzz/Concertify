@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Concertify",
-    "slug": "Concertify",
+    "slug": "concertify",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -31,6 +31,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "82d8eebc-548d-4a1b-9c19-0c5f32f94ffc"
+      },
+      "router": {
+        "origin": false
+      }
+    },
+    "owner": "biencutica"
   }
 }
