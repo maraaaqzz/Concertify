@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, View, Text, Image, TextInput, TouchableOpacity } from 'react-native';
 import { LinearGradient } from "expo-linear-gradient";
-import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/firebaseConfig';
+import { FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
-import { images } from "../constants";
+import { images } from "../../constants";
 import { useRouter } from 'expo-router';
 
 const Profile = () => {

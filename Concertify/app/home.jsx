@@ -181,7 +181,7 @@ const HomeTab = () => {
       if (user) {
         router.push('./profile');
       } else {
-        router.push('./login'); 
+        router.replace('./login'); // if user is logged out we go to login
       }
     });
   }
@@ -265,7 +265,7 @@ const HomeTab = () => {
     });
 
     return () => {
-      unsubscribeAuth(); // Clean up the auth listener
+      unsubscribeAuth(); 
     };
   }, [userId]);
 
