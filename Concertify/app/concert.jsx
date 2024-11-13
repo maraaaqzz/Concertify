@@ -4,9 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StyleSheet, Text, Image, View, TouchableOpacity, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/firebaseConfig';
+import { FIREBASE_AUTH } from '../services/firebaseConfig';
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 const Concert = () => {
   const { concertId, name, photoUrl, location, date, time, description } = useLocalSearchParams();
@@ -21,7 +20,6 @@ const Concert = () => {
           await updateDoc(userDocRef, {
             concerts: arrayUnion(concertId)
           });
-          console.log("concert added");
           router.dismiss(1);
           router.push({
             pathname: '/concertPage',
@@ -31,7 +29,7 @@ const Concert = () => {
           console.error("Error adding concert to user's data:", error);
         }
       } else {
-        router.push('./login'); // If user is logged out, redirect to login
+        router.replace('./login'); // If user is logged out, redirect to login
       }
     })
   }

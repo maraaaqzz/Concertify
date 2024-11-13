@@ -16,9 +16,9 @@ const styles = StyleSheet.create({
 });
 
 const commonHeaderOptions = {
-  headerShown: false,
+  headerShown: true,
   headerTransparent: true,
-  headerTitleAlign: 'center',
+  headerTitleAlign: 'left',
   headerTitleStyle: styles.headerTitle,
   headerTintColor: '#FFFFFF', // Arrow color
 };
@@ -59,16 +59,16 @@ const RootLayout = () => {
         options={{ headerShown: false }} 
       />
       <Stack.Screen 
-        name="profile" 
-        options={commonHeaderOptions}
+        name="comments" 
+        options={{ headerShown: false }} 
       />
       <Stack.Screen 
-        name="home"
-        options={commonHeaderOptions}
+        name="(user)" 
+        options={{ headerShown: false }}
       />
       <Stack.Screen 
-        name="login" 
-        options={commonHeaderOptions}
+       name="home"
+       options={{ headerShown: false }}
       />
     </Stack>
   )
