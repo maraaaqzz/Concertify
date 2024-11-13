@@ -21,7 +21,9 @@ const HomeTab = () => {
       if (user) {
         router.push('./profile');
       } else {
-        router.replace('./login'); // if user is logged out we go to login
+        //router.dismissAll();
+        router.replace('./home');
+        router.push('./login'); // if user is logged out we go to login
       }
     });
   }
@@ -74,7 +76,6 @@ const HomeTab = () => {
 
     return unsubscribe;
   };
-
 
   const fetchUsername = async (uid) => {
     try {

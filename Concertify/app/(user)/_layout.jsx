@@ -10,6 +10,10 @@ const RootLayout = () => {
   return (
     <Stack>
       <Stack.Screen 
+        name="concert" 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
         name="login" 
         options={{headerShown: false}} />
       <Stack.Screen 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, View, Text, Image, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, ScrollView, View, Text, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient } from "expo-linear-gradient";
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';
 import { onAuthStateChanged } from "firebase/auth";
@@ -24,6 +24,7 @@ const Profile = () => {
     try {
         await FIREBASE_AUTH.signOut();
         router.dismissAll();
+        router.replace('/home');
     } catch (e) {
         console.log(e);
     }
@@ -53,7 +54,9 @@ const Profile = () => {
 
   return (
     <LinearGradient colors={['#040306', '#131624']} style={styles.container}>
+      
       <ScrollView contentContainerStyle={styles.scrollContent}>
+      
         <View style={styles.coverContainer}>
             <View style={styles.coverImageContainer}>
                 <Image 
@@ -119,6 +122,7 @@ const Profile = () => {
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>
+      
     </LinearGradient>
   );
 };
