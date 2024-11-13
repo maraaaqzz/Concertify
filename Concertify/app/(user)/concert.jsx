@@ -2,14 +2,13 @@ import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { StyleSheet, Text, Image, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, Image, View, TouchableOpacity, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/firebaseConfig';
+import { FIREBASE_AUTH } from '../services/firebaseConfig';
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 const Concert = () => {
-  const { concertId, name, photoUrl, location, date, time } = useLocalSearchParams();
+  const { concertId, name, photoUrl, location, date, time, description } = useLocalSearchParams();
   const router = useRouter();
 
   const goToConcertPage = () =>{
@@ -32,57 +31,59 @@ const Concert = () => {
       } else {
         router.replace('./login'); // If user is logged out, redirect to login
       }
-    });
+    })
   }
 
   return (
     <LinearGradient colors={['#040306', '#131624']} style={{ flex: 1 }}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.imageContainer}>
-          {photoUrl ? (
-            <Image source={{ uri: photoUrl }} style={styles.largeImage} />
-          ) : (
-            <Text style={styles.errorText}>Image not found</Text>
-          )}
-          <LinearGradient
-            colors={['transparent', 'rgba(1, 1, 1, 1.7)']}
-            style={styles.overlay}>
-            <View style={styles.overlayContent}>
-                <Text style={styles.name}>{name}</Text>
-                <View style={styles.dateBadge}>
-                <Text style={styles.dateText}>{date || 'Date not available'}</Text>
-                </View>
+      <ScrollView style={styles.scrollContent}>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.imageContainer}>
+            {photoUrl ? (
+              <Image source={{ uri: photoUrl }} style={styles.largeImage} />
+            ) : (
+              <Text style={styles.errorText}>Image not found</Text>
+            )}
+            <LinearGradient
+              colors={['transparent', 'rgba(1, 1, 1, 1.7)']}
+              style={styles.overlay}>
+              <View style={styles.overlayContent}>
+                  <Text style={styles.name}>{name}</Text>
+                  <View style={styles.dateBadge}>
+                  <Text style={styles.dateText}>{date || 'Date not available'}</Text>
+                  </View>
+              </View>
+            </LinearGradient>
+          </View>
+
+          <View style={styles.infoContainer}>
+            <View style={styles.infoRow}>
+              <Icon name="map-marker" size={22} color="#fff"/>
+              <Text style={styles.infoText}>{location || 'Location not available'}</Text>
             </View>
-          </LinearGradient>
-        </View>
-
-        <View style={styles.infoContainer}>
-          <View style={styles.infoRow}>
-            <Icon name="map-marker" size={22} color="#fff"/>
-            <Text style={styles.infoText}>{location || 'Location not available'}</Text>
           </View>
-        </View>
-        
-        <View style={styles.infoContainer}>
-          <View style={styles.infoRow}>
-            <Icon name="clock-outline" size={22} color="#fff" />
-            <Text style={styles.infoText}>{`${date || 'Date not available'} at ${time || 'Time not available'} UTC+2`}</Text>
+          
+          <View style={styles.infoContainer}>
+            <View style={styles.infoRow}>
+              <Icon name="clock-outline" size={22} color="#fff" />
+              <Text style={styles.infoText}>{`${date || 'Date not available'} at ${time || 'Time not available'} UTC+2`}</Text>
+            </View>
           </View>
-        </View>
 
-        <View style={styles.descriptionContainer}>
-          <Text style={styles.descriptionTitle}>Description</Text>
-          <Text style={styles.descriptionText}>
-            description
-          </Text>
-        </View>
+          <View style={styles.descriptionContainer}>
+            <Text style={styles.descriptionTitle}>Description</Text>
+            <Text style={styles.descriptionText}>
+              {`${description}`}
+            </Text>
+          </View>
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.checkInButton} onPress={goToConcertPage}>
-            <Text style={styles.checkInText}>Check-in</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.checkInButton} onPress={goToConcertPage}>
+              <Text style={styles.checkInText}>Check-in</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </ScrollView>
     </LinearGradient>
   );
 };
@@ -94,6 +95,9 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
         paddingTop: 50,
         paddingHorizontal: 20,
+    },
+    scrollContent: {
+      paddingBottom: 20, 
     },
     imageContainer: {
         width: '100%',
@@ -170,6 +174,7 @@ const styles = StyleSheet.create({
         color: '#aaa',
         fontSize: 16,
         lineHeight: 22,
+        textAlign: 'justify'
     },
     errorText: {
         color: 'red',
@@ -186,7 +191,8 @@ const styles = StyleSheet.create({
       paddingHorizontal: 30,
       borderRadius: 15,
       alignItems: 'center',
-      marginTop: 40
+      marginTop: 10,
+      marginBottom:10
     },
     checkInText: {
       color: '#fff',

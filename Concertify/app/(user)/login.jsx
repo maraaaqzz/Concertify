@@ -9,7 +9,6 @@ import { FIREBASE_AUTH, FIRESTORE_DB} from '../../services/firebaseConfig'
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword} from  'firebase/auth'
 import { setDoc, doc } from 'firebase/firestore';
 
-
 const LogIn = () => {
   const [isSignIn, setIsSignIn] = useState(true); 
 
@@ -19,7 +18,6 @@ const LogIn = () => {
   const [password, setPassword] = useState('');
   const [loading, isLoading] = useState(false);
   
-
   const submitSignin = async() => {
     if(!email || !password){
         Alert.alert('Error', 'Please fill in all the fields')
@@ -104,7 +102,7 @@ const LogIn = () => {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.title}>{isSignIn ? "Want to go further?\nLogin to Concertify!" : "Sign Up for Concertify!"}</Text>
+        <Text style={styles.title}>{isSignIn ? "Login to Concertify!" : "Sign Up for Concertify!"}</Text>
 
         {isSignIn ? 
         (

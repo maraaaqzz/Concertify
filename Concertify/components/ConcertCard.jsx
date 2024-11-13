@@ -1,8 +1,8 @@
 import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
 import React from "react";
 import { useRouter } from 'expo-router';
-import { doc, getDoc } from 'firebase/firestore';
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/firebaseConfig';
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
 import { onAuthStateChanged } from "firebase/auth";
 
 export const ConcertCard = ({ item }) => {
@@ -29,7 +29,8 @@ export const ConcertCard = ({ item }) => {
                 photoUrl: item.photoUrl,
                 location: item.location,
                 date: date,
-                time: time
+                time: time,
+                description: item.description
             },
         });
     };
@@ -60,7 +61,7 @@ export const ConcertCard = ({ item }) => {
             }
         });
     }
-
+    
     return (
         <TouchableOpacity onPress={goTo} style={styles.cardContainer}>
           <Image
