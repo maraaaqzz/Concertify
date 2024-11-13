@@ -55,10 +55,6 @@ const RootLayout = () => {
         options={{ headerShown: false }} 
       />
       <Stack.Screen 
-        name="concert" 
-        options={{ headerShown: false }} 
-      />
-      <Stack.Screen 
         name="comments" 
         options={{ headerShown: false }} 
       />

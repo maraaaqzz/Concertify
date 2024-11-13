@@ -29,8 +29,7 @@ const LogIn = () => {
       try{
         const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
         const user = userCredential.user;
-        // router.dismissAll();
-        // router.dismiss();
+        //router.dismissAll();
         router.replace('/home');
       }catch (error) {
         console.error("Error signing in: ", error);

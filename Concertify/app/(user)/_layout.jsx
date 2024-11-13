@@ -16,6 +16,10 @@ const RootLayout = () => {
         name="profile" 
         options={{ headerShown: false }} 
       />
+      <Stack.Screen 
+        name="concert" 
+        options={{ headerShown: false }} 
+      />
     </Stack>
   )
 }

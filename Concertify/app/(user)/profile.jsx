@@ -13,6 +13,7 @@ const Profile = () => {
     try {
         await FIREBASE_AUTH.signOut();
         router.dismissAll();
+        router.replace('/home');
     } catch (e) {
         console.log(e);
     }
