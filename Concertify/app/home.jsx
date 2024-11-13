@@ -19,7 +19,7 @@ const HomeTab = () => {
         const uid = user.uid;
         router.push('./profile'); //if user is logged in we go to profile
       } else {
-        router.push('./login'); // if user is logged out we go to login
+        router.replace('./login'); // if user is logged out we go to login
       }
     });
   }

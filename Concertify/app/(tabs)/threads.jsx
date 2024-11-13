@@ -29,18 +29,6 @@ const ThreadsTab = () => {
     };
     fetchUsername();
   }, [userId]);
-
-  // const fetchComments = async (postId) => {
-  //   const commentsCollection = collection(FIRESTORE_DB, 'threads', postId, 'comments');
-  //   const commentsQuery = query(commentsCollection, orderBy('timestamp', 'asc'));
-  //   const querySnapshot = await getDocs(commentsQuery);
-  
-  //   return querySnapshot.docs.map(doc => ({
-  //     id: doc.id,
-  //     ...doc.data(),
-  //   }));
-  // };
-
   // Function to add a post
   const addPost = async (text) => {
     try {
@@ -50,6 +38,10 @@ const ThreadsTab = () => {
         timestamp: new Date(),
         likes: 0,  // Initialize with 0 likes
         likedBy: [] // Track users who have liked the post
+      });
+
+      await updateDoc(postRef, {
+        postId: postRef.id
       });
       // const commentsCollectionRef = collection(postRef, 'comments');
       // await setDoc(doc(commentsCollectionRef), {});
@@ -115,7 +107,11 @@ const ThreadsTab = () => {
           <TouchableOpacity
             onPress={() => router.push({
               pathname: `/comments`, 
-              params: {postId: item.id } 
+              params: {
+                concertId: concertId,
+                postId: item.id,
+                username: username
+              } 
             })}
             style={styles.commentButton }
           >

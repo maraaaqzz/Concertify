@@ -4,7 +4,7 @@ import { TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router'; 
 import { onAuthStateChanged, signOut} from "firebase/auth";
-import { FIREBASE_AUTH } from '../services/firebaseConfig';
+import { FIREBASE_AUTH } from '../../services/firebaseConfig';
 
 const Profile = () => {
   

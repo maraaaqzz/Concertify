@@ -3,9 +3,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { LinearGradient } from "expo-linear-gradient";
 import { Text, TextInput, View, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
-import { images } from "../constants";
+import { images } from "../../constants";
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
-import { FIREBASE_AUTH, FIRESTORE_DB} from '../services/firebaseConfig'
+import { FIREBASE_AUTH, FIRESTORE_DB} from '../../services/firebaseConfig'
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword} from  'firebase/auth'
 import { setDoc, doc } from 'firebase/firestore';
 
@@ -29,7 +29,9 @@ const LogIn = () => {
       try{
         const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
         const user = userCredential.user;
-        router.dismissAll();
+        // router.dismissAll();
+        // router.dismiss();
+        router.replace('/home');
       }catch (error) {
         console.error("Error signing in: ", error);
       }finally{
@@ -69,7 +71,7 @@ const LogIn = () => {
     }
   }
 
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(true);
   const toggleShowPassword = () => {
       setShowPassword(!showPassword);
   };
@@ -103,7 +105,7 @@ const LogIn = () => {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.title}>{isSignIn ? "Login to Concertify!" : "Sign Up for Concertify!"}</Text>
+        <Text style={styles.title}>{isSignIn ? "Want to go further?\nLogin to Concertify!" : "Sign Up for Concertify!"}</Text>
 
         {isSignIn ? 
         (
@@ -204,13 +206,14 @@ const LogIn = () => {
                 placeholder="Password"
                 placeholderTextColor="#999"
                 onChangeText={(text) => setPassword(text)}
-                secureTextEntry // hide the password
+                secureTextEntry={showPassword}
               />
               <MaterialIcons 
-                name="lock" 
+                name={showPassword ? 'visibility-off' : 'visibility'}
                 size={20} 
                 color="#999" 
-                style={styles.icon} 
+                style={styles.icon}
+                onPress={toggleShowPassword}
               />
             </View>
 
