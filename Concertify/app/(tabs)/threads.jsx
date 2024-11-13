@@ -110,7 +110,9 @@ const ThreadsTab = () => {
               params: {
                 concertId: concertId,
                 postId: item.id,
-                username: username
+                postUsername: item.username,
+                postContent: item.content,
+                currentUsername: username,
               } 
             })}
             style={styles.commentButton }

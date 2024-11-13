@@ -4,34 +4,18 @@ import { Text, FlatList, TextInput, StyleSheet, View, TouchableOpacity, Keyboard
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/firebaseConfig';
-import { collection, addDoc, onSnapshot, orderBy, query, doc, getDoc, updateDoc, arrayUnion, arrayRemove, increment, setDoc } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, orderBy, query, updateDoc, doc, getDoc,arrayUnion, arrayRemove, increment } from 'firebase/firestore';
 
 const CommentTab = ({ route }) => {
-  const { concertId, postId, username } = useLocalSearchParams();// Get postId from route parameters
+  // Get postId from route parameters
+  const { concertId, postId, postUsername, postContent, currentUsername } = useLocalSearchParams();
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
   const userId = FIREBASE_AUTH.currentUser?.uid;
+  const [postData, setPostData] = useState(null);
 
-  const [post, setPost] = useState(null); // Initialize post state
-
-  // Fetch comments when the component mounts
-  const fetchPost = async () => {
-    try {
-      const docRef = doc(FIRESTORE_DB, 'concerts', concertId, 'threads', postId);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const postData = docSnap.data();
-        setPost(postData); // Update the state with post data
-      } else {
-        console.log("No such document!");
-      }
-    } catch (error) {
-      console.error("Error fetching post:", error);
-    }
-  };
   useEffect(() => {
-    fetchPost();
+    //console.log(postTime);
     const commentsRef = collection(FIRESTORE_DB, 'concerts', concertId, 'threads', postId, 'comments');
     const commentsQuery = query(commentsRef, orderBy('timestamp', 'asc'));
 
@@ -42,6 +26,7 @@ const CommentTab = ({ route }) => {
       }));
       setComments(fetchedComments);
     });
+    
 
     return () => unsubscribe(); // Clean up subscription on unmount
   }, [concertId, postId]);
@@ -49,7 +34,7 @@ const CommentTab = ({ route }) => {
   const addComment = async (text) => {
     try {
       await addDoc(collection(FIRESTORE_DB, 'concerts', concertId, 'threads', postId, 'comments'), {
-        username: username,
+        username: currentUsername,
         content: text,
         timestamp: new Date(),
         likes: 0,
@@ -85,26 +70,14 @@ const CommentTab = ({ route }) => {
     );
   };
   // Render each comment item
-  //const isLikedPost = post.likedBy?.includes(userId);
+  
   return (
     <LinearGradient colors={['#040306', '#131624']} style={{ flex: 1 }}>
       <KeyboardAvoidingView style={{ flex: 1, marginBottom: 30 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <SafeAreaView style={styles.container}>
           <View style={styles.postContainer}>
-            {/* <View style={styles.commentUserContainer}>
-              <Text style={styles.commentUser}>{post.username}</Text>
-              <Text style={styles.timestamp}>{new Date(post.timestamp.seconds * 1000).toLocaleString()}</Text>
-            </View>
-            <Text style={styles.commentContent}>{post.content}</Text>
-            <View style={styles.likeContainer}>
-              <TouchableOpacity
-                onPress={() => handleLikeToggle(post.id, isLikedPost)}
-                style={[styles.likeButton, isLikedPost ? styles.liked : null]}
-              >
-                <Text style={styles.likeButtonText}>{isLikedPost ? 'Unlike' : 'Like'}</Text>
-              </TouchableOpacity>
-              <Text style={styles.likeCount}>{post.likes} {post.likes === 1 ? 'Like' : 'Likes'}</Text>
-            </View> */}
+            <Text style={styles.postUser}>{postUsername}</Text>
+            <Text style={styles.postContent}>{postContent}</Text>
           </View>
           <FlatList
             data={comments}
@@ -120,7 +93,7 @@ const CommentTab = ({ route }) => {
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
-              placeholder="What's on your mind?"
+              placeholder="Respond to post"
               placeholderTextColor="#ccc"
               value={comment}
               onChangeText={(text) => setComment(text)}
@@ -128,7 +101,7 @@ const CommentTab = ({ route }) => {
             <TouchableOpacity
               onPress={() => addComment(comment)}
               style={styles.commentButton}
-              disabled={!username || !comment.trim()}
+              disabled={!currentUsername || !comment.trim()}
             >
               <Text style={styles.commentButtonText}>Comment</Text>
             </TouchableOpacity>
@@ -148,6 +121,18 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 20,
     marginBottom: 10,
+  },
+  postUser: {
+    marginBottom: 5,
+    alignContent: 'center',
+    color: '#aaa',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  postContent: {
+    color: '#fff',
+    fontSize: 23,
+    marginBottom: 5,
   },
   commentList: {
     paddingHorizontal: 20,
