@@ -63,12 +63,12 @@ const RootLayout = () => {
         options={commonHeaderOptions}
       />
       <Stack.Screen 
-       name="home"
-       options={commonHeaderOptions}
+        name="home"
+        options={commonHeaderOptions}
       />
       <Stack.Screen 
-       name="login" 
-       options={commonHeaderOptions}
+        name="login" 
+        options={commonHeaderOptions}
       />
     </Stack>
   )
