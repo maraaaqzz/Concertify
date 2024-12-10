@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { router, useGlobalSearchParams, useLocalSearchParams } from 'expo-router';
+import { router, useGlobalSearchParams } from 'expo-router';
 import { Text, FlatList, TextInput, StyleSheet, View, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';
-import { collection, addDoc, onSnapshot, orderBy, query, doc, getDoc, updateDoc, arrayUnion, arrayRemove, increment, setDoc } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, orderBy, query, doc, getDoc, updateDoc, arrayUnion, arrayRemove, increment } from 'firebase/firestore';
 
 const ThreadsTab = () => {
   const [post, setPost] = useState('');
@@ -43,8 +43,6 @@ const ThreadsTab = () => {
       await updateDoc(postRef, {
         postId: postRef.id
       });
-      // const commentsCollectionRef = collection(postRef, 'comments');
-      // await setDoc(doc(commentsCollectionRef), {});
 
       setPost('');
     } catch (error) {

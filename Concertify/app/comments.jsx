@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { router, useGlobalSearchParams, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Text, FlatList, TextInput, StyleSheet, View, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/firebaseConfig';
-import { collection, addDoc, onSnapshot, orderBy, query, updateDoc, doc, getDoc,arrayUnion, arrayRemove, increment } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, orderBy, query, updateDoc, doc, arrayUnion, arrayRemove, increment } from 'firebase/firestore';
 
-const CommentTab = ({ route }) => {
+const CommentTab = () => {
   // Get postId from route parameters
   const { concertId, postId, postUsername, postContent, currentUsername } = useLocalSearchParams();
+
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
+
   const userId = FIREBASE_AUTH.currentUser?.uid;
-  const [postData, setPostData] = useState(null);
 
   useEffect(() => {
-    //console.log(postTime);
     const commentsRef = collection(FIRESTORE_DB, 'concerts', concertId, 'threads', postId, 'comments');
     const commentsQuery = query(commentsRef, orderBy('timestamp', 'asc'));
 
@@ -44,6 +44,23 @@ const CommentTab = ({ route }) => {
       setComment('');
     } catch (error) {
       console.error('Error adding post:', error);
+    }
+  };
+  const handleLikeToggle = async (commentId, isLiked) => {
+    const postRef = doc(FIRESTORE_DB, 'concerts', concertId, 'threads', postId, 'comments', commentId);
+
+    if (isLiked) {
+      // Unlike: remove the user's ID from likedBy and decrement likes count
+      await updateDoc(postRef, {
+        likedBy: arrayRemove(userId),
+        likes: increment(-1)
+      });
+    } else {
+      // Like: add the user's ID to likedBy and increment likes count
+      await updateDoc(postRef, {
+        likedBy: arrayUnion(userId),
+        likes: increment(1)
+      });
     }
   };
 
