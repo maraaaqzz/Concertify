@@ -15,7 +15,7 @@ export default function Index() {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1, 
-        duration: 5000,
+        duration: 2000,
         useNativeDriver: true,
       }),
       Animated.timing(scaleAnim, {

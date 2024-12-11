@@ -1,13 +1,14 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { LinearGradient } from "expo-linear-gradient";
-import { SectionContainer } from "../components/SectionContainer";
-import { onAuthStateChanged } from "firebase/auth";
-import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/firebaseConfig';
+import { SectionContainer } from '../components/SectionContainer';
+import { onAuthStateChanged } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, onSnapshot } from 'firebase/firestore';
+import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/firebaseConfig';
 
 const HomeTab = () => {
   const [name, setName] = useState('');
@@ -16,60 +17,48 @@ const HomeTab = () => {
   const [userConcerts, setUserConcerts] = useState([]);
   const [userId, setUserId] = useState(null);
 
-  const goToSignInIfLoggedOut = () => {
+  // Navigate based on authentication state
+  const navigateIfLoggedOut = (route) => {
     onAuthStateChanged(FIREBASE_AUTH, (user) => {
       if (user) {
-        router.push('./profile');
+        router.push(route);
       } else {
-        //router.dismissAll();
-        router.replace('./home');
-        router.push('./login'); // if user is logged out we go to login
-        
+        router.replace('./login');
       }
     });
-  }
+  };
 
+  // Fetch all concerts from the database
   const fetchConcerts = async () => {
     try {
       const snapshot = await getDocs(collection(FIRESTORE_DB, 'concerts'));
-      const concertsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const concertsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setConcerts(concertsData);
     } catch (error) {
-      console.error("Error fetching concerts: ", error);
+      console.error('Error fetching concerts: ', error);
     }
   };
 
-  // listener is for the displayed list to update in real time
+  // Setup listener for user's concerts
   const setupUserConcertsListener = () => {
     if (!userId) return;
 
     const userDocRef = doc(FIRESTORE_DB, 'users', userId);
-    
-    const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
+    const unsubscribe = onSnapshot(userDocRef, async (docSnapshot) => {
       if (docSnapshot.exists()) {
-        const concertIds = docSnapshot.data().concerts || []; 
-
-        // only fetch data and update state, no writes allowed
-        const fetchConcertDetails = async () => {
-          const userConcertsData = [];
-          for (const concertId of concertIds) {
+        const concertIds = docSnapshot.data().concerts || [];
+        const userConcertsData = await Promise.all(
+          concertIds.map(async (concertId) => {
             try {
               const concertDoc = await getDoc(doc(FIRESTORE_DB, 'concerts', concertId));
-              if (concertDoc.exists()) {
-                userConcertsData.push({ id: concertDoc.id, ...concertDoc.data() });
-              }
+              return concertDoc.exists() ? { id: concertDoc.id, ...concertDoc.data() } : null;
             } catch (error) {
-              console.error("Error fetching concert details: ", error);
+              console.error('Error fetching concert details: ', error);
+              return null;
             }
-          }
-          // update the state only, no write-back to the database
-          setUserConcerts(userConcertsData);
-        };
-
-        fetchConcertDetails();
+          })
+        );
+        setUserConcerts(userConcertsData.filter(Boolean));
       } else {
         setUserConcerts([]);
       }
@@ -78,7 +67,7 @@ const HomeTab = () => {
     return unsubscribe;
   };
 
-
+  // Fetch username for the authenticated user
   const fetchUsername = async (uid) => {
     try {
       const userDoc = await getDoc(doc(FIRESTORE_DB, 'users', uid));
@@ -91,72 +80,63 @@ const HomeTab = () => {
       console.error('Error fetching username: ', error);
     }
   };
-  
+
+  // Determine greeting message based on time of day
+  const greetingMessage = () => {
+    const currentTime = new Date().getHours();
+    if (currentTime < 12) return 'Good Morning';
+    if (currentTime < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  };
+
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(FIREBASE_AUTH, (user) => {
       if (user) {
         setIsAuthenticated(true);
         setUserId(user.uid);
         fetchUsername(user.uid);
-        setupUserConcertsListener(); // Set up listener for user's concerts
+        setupUserConcertsListener();
       } else {
         setIsAuthenticated(false);
-        setName(''); // Clear username if logged out
-        setUserConcerts([]); // Clear user concerts if logged out
+        setName('');
+        setUserConcerts([]);
         setUserId(null);
       }
     });
 
-    return () => {
-      unsubscribeAuth(); 
-    };
+    return unsubscribeAuth;
   }, [userId]);
 
   useEffect(() => {
     fetchConcerts();
   }, []);
 
-  const greetingMessage = () => {
-    const currentTime = new Date().getHours();
-    if (currentTime < 12) {
-      return "Good Morning";
-    } else if (currentTime < 18) {
-      return "Good Afternoon";
-    } else {
-      return "Good Evening";
-    }
-  };
-
-  const message = greetingMessage();
-
   return (
-    <LinearGradient 
-      colors={['#040306', '#131624']}
-      style={{ flex: 1 }} 
-    >
+    <LinearGradient colors={['#040306', '#131624']} style={{ flex: 1 }}>
       <SafeAreaView className="flex my-6 px-4 space-y-6">
-        <View className="flex justify-between items-start flex-row mb-6">
-          <Text className="text-2xl font-bold text-white" style={{ marginTop: 3, marginHorizontal: 15 }}>
-            {message} {isAuthenticated && `, ${name}`}
-          </Text>
-          <View>
-            <TouchableOpacity onPress={goToSignInIfLoggedOut} style={{ marginBottom: 5, marginRight: 15 }} > 
-              <MaterialCommunityIcons
-                name="account-circle" 
-                size={30}
-                color="white"
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
 
+        {/* Header */}
+        <View className="flex justify-between items-start flex-wrap flex-row mb-6">
+          <TouchableOpacity onPress={() => navigateIfLoggedOut('./profile')} style={{ marginBottom: 5, marginRight: 5 }}>
+            <MaterialCommunityIcons name="account-circle" size={30} color="white" />
+          </TouchableOpacity>
+          <Text className="text-2xl font-bold text-white" style={{ marginTop: 3, marginHorizontal: 5 }}>
+            {greetingMessage()} {isAuthenticated && `, ${name}`}
+          </Text>
+          <TouchableOpacity onPress={() => navigateIfLoggedOut('./chat')}>
+            <Ionicons name="chatbubble-ellipses" size={28} color="white" />
+          </TouchableOpacity>
+        </View>
+        
+
+        {/* User's Concerts */}
         <View>
           <View style={styles.titleContainer}>
             <Text style={styles.titleText}>Your Concerts</Text>
           </View>
           {isAuthenticated ? (
             userConcerts.length > 0 ? (
-              <SectionContainer title="" data={userConcerts} />
+              <SectionContainer data={userConcerts} />
             ) : (
               <View style={styles.addConcertsMessageContainer}>
                 <Text style={styles.addConcertMessageText}>Check-in to concerts!</Text>
@@ -164,25 +144,26 @@ const HomeTab = () => {
             )
           ) : (
             <View style={styles.addConcertsMessageContainer}>
-                <Text style={styles.addConcertMessageText}>Log-in to see your concerts!</Text>
-              </View>
+              <Text style={styles.addConcertMessageText}>Log-in to see your concerts!</Text>
+            </View>
           )}
         </View>
 
-
+        {/* Upcoming Concerts */}
         <View>
-        <View style={styles.titleContainer}>
+          <View style={styles.titleContainer}>
             <Text style={styles.titleText}>Upcoming Concerts</Text>
           </View>
           <SectionContainer data={concerts} />
         </View>
+
       </SafeAreaView>
     </LinearGradient>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  addConcertsMessageContainer:{
+  addConcertsMessageContainer: {
     backgroundColor: '#171B2C',
     paddingVertical: 10,
     paddingHorizontal: 70,
@@ -190,28 +171,28 @@ const styles = StyleSheet.create({
     marginLeft: 20,
     marginRight: 20,
     marginBottom: 40,
-    marginTop: 20
+    marginTop: 20,
   },
   titleContainer: {
-    backgroundColor: "#131624",
+    backgroundColor: '#131624',
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 20,
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
     marginHorizontal: 10,
     marginTop: 10,
   },
   titleText: {
-    color: "white",
+    color: 'white',
     fontSize: 17,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
-  addConcertMessageText:{
+  addConcertMessageText: {
     alignItems: 'center',
     fontSize: 16,
-    color:'#fff',
+    color: '#fff',
     fontWeight: 'bold',
-  }
-})
+  },
+});
 
 export default HomeTab;
