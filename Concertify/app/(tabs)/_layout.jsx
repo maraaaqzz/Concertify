@@ -31,6 +31,7 @@ const TabsLayout = () => {
                     backgroundColor: "#131624",
                     borderTopWidth: 0,
                     borderTopColor: "#232533",
+                    paddingTop:10,
                     height: 84,
                   },
             }}
@@ -82,4 +83,4 @@ const TabsLayout = () => {
   )
 }
 
-export default TabsLayout
+export default TabsLayout;

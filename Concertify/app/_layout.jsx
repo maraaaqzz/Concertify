@@ -3,6 +3,7 @@ import React from 'react'
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
 import { Stack, SplashScreen } from 'expo-router'
+//import GlobalProvider from "../context/GlobalProvider"
 import "../global.css";
 
 SplashScreen.preventAutoHideAsync();
@@ -46,6 +47,7 @@ const RootLayout = () => {
   }
 
   return (
+
     <Stack>
       <Stack.Screen 
         name="index" 
@@ -66,7 +68,9 @@ const RootLayout = () => {
        name="home"
        options={{ headerShown: false }}
       />
+      
     </Stack>
+  
   )
 }
 

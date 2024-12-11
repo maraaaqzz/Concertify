@@ -12,4 +12,4 @@ const ConcertPage = () => {
   )
 }
 
-export default ConcertPage
+export default ConcertPage;

@@ -1,21 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { router, useGlobalSearchParams, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Text, FlatList, TextInput, StyleSheet, View, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/firebaseConfig';
-import { collection, addDoc, onSnapshot, orderBy, query, updateDoc, doc, getDoc,arrayUnion, arrayRemove, increment } from 'firebase/firestore';
+import { collection, doc, getDoc, addDoc, onSnapshot, orderBy, query, updateDoc, arrayUnion, arrayRemove, increment } from 'firebase/firestore';
 
-const CommentTab = ({ route }) => {
-  // Get postId from route parameters
-  const { concertId, postId, postUsername, postContent, currentUsername } = useLocalSearchParams();
+const CommentTab = () => {
+  const { concertId, postId, currentUsername } = useLocalSearchParams();
+
+  const [postDetails, setPostDetails] = useState(null); // State for post details
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
-  const userId = FIREBASE_AUTH.currentUser?.uid;
-  const [postData, setPostData] = useState(null);
 
+  const userId = FIREBASE_AUTH.currentUser?.uid;
+
+  // Fetch post details
   useEffect(() => {
-    //console.log(postTime);
+    const fetchPostDetails = async () => {
+      try {
+        const postRef = doc(FIRESTORE_DB, 'concerts', concertId, 'threads', postId);
+        const postSnap = await getDoc(postRef);
+        if (postSnap.exists()) {
+          setPostDetails(postSnap.data());
+        } else {
+          console.error('Post not found');
+        }
+      } catch (error) {
+        console.error('Error fetching post details:', error);
+      }
+    };
+
+    fetchPostDetails();
+  }, [concertId, postId]);
+
+  // Fetch comments
+  useEffect(() => {
     const commentsRef = collection(FIRESTORE_DB, 'concerts', concertId, 'threads', postId, 'comments');
     const commentsQuery = query(commentsRef, orderBy('timestamp', 'asc'));
 
@@ -26,9 +46,8 @@ const CommentTab = ({ route }) => {
       }));
       setComments(fetchedComments);
     });
-    
 
-    return () => unsubscribe(); // Clean up subscription on unmount
+    return () => unsubscribe();
   }, [concertId, postId]);
 
   const addComment = async (text) => {
@@ -38,18 +57,33 @@ const CommentTab = ({ route }) => {
         content: text,
         timestamp: new Date(),
         likes: 0,
-        likedBy: []
+        likedBy: [],
       });
-
       setComment('');
     } catch (error) {
-      console.error('Error adding post:', error);
+      console.error('Error adding comment:', error);
+    }
+  };
+
+  const handleLikeToggle = async (commentId, isLiked) => {
+    const postRef = doc(FIRESTORE_DB, 'concerts', concertId, 'threads', postId, 'comments', commentId);
+
+    if (isLiked) {
+      await updateDoc(postRef, {
+        likedBy: arrayRemove(userId),
+        likes: increment(-1),
+      });
+    } else {
+      await updateDoc(postRef, {
+        likedBy: arrayUnion(userId),
+        likes: increment(1),
+      });
     }
   };
 
   const renderCommentItem = ({ item }) => {
     const isLiked = item.likedBy?.includes(userId);
-    
+
     return (
       <View style={styles.commentContainer}>
         <View style={styles.commentUserContainer}>
@@ -69,27 +103,28 @@ const CommentTab = ({ route }) => {
       </View>
     );
   };
-  // Render each comment item
-  
+
   return (
     <LinearGradient colors={['#040306', '#131624']} style={{ flex: 1 }}>
       <KeyboardAvoidingView style={{ flex: 1, marginBottom: 30 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <SafeAreaView style={styles.container}>
-          <View style={styles.postContainer}>
-            <Text style={styles.postUser}>{postUsername}</Text>
-            <Text style={styles.postContent}>{postContent}</Text>
-          </View>
+          {postDetails ? (
+            <View style={styles.postContainer}>
+              <Text style={styles.postUser}>{postDetails.username}</Text>
+              <Text style={styles.postContent}>{postDetails.content}</Text>
+            </View>
+          ) : (
+            <Text style={styles.loadingText}>Loading post...</Text>
+          )}
           <FlatList
             data={comments}
             keyExtractor={(item) => item.id}
             renderItem={renderCommentItem}
             contentContainerStyle={styles.commentList}
             onScrollBeginDrag={() => Keyboard.dismiss()}
-            initialNumToRender={5}  
+            initialNumToRender={5}
             maxToRenderPerBatch={10}
           />
-
-          {/* Input and Post Button at the Bottom */}
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
