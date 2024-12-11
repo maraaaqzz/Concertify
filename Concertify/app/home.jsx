@@ -9,6 +9,7 @@ import { SectionContainer } from '../components/SectionContainer';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, onSnapshot } from 'firebase/firestore';
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/firebaseConfig';
+import SearchInput from '../components/SearchInput'
 
 const HomeTab = () => {
   const [name, setName] = useState('');
@@ -128,6 +129,7 @@ const HomeTab = () => {
           </TouchableOpacity>
         </View>
         
+        <SearchInput/>
 
         {/* User's Concerts */}
         <View>
