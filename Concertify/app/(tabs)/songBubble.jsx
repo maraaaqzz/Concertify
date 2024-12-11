@@ -16,7 +16,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri, useAuthRequest, ResponseType } from 'expo-auth-session';
-import * as SecureStore from 'expo-secure-store';
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';
 import {
   collection,
