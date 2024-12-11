@@ -20,6 +20,14 @@ const RootLayout = () => {
         name="profile" 
         options={{ headerShown: false }} 
       />
+       <Stack.Screen 
+        name="chat" 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="chatRoom" 
+        options={{ headerShown: false }} 
+      />
     </Stack>
   )
 }

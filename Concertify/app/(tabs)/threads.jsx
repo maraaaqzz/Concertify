@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';
 import { collection, addDoc, onSnapshot, orderBy, query, doc, getDoc, updateDoc, arrayUnion, arrayRemove, increment, setDoc } from 'firebase/firestore';
+import { Ionicons } from '@expo/vector-icons'; 
 
 const ThreadsTab = () => {
   const [post, setPost] = useState('');
@@ -128,6 +129,14 @@ const ThreadsTab = () => {
     <LinearGradient colors={['#040306', '#131624']} style={{ flex: 1 }}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <SafeAreaView style={styles.container}>
+
+           {/* Header with chat button */}
+           <View style={styles.header}>
+            <Text style={styles.headerTitle}>Threads</Text>
+            <TouchableOpacity onPress={() => router.push('/chat')}>
+              <Ionicons name="chatbubble-ellipses-outline" size={28} color="white" />
+            </TouchableOpacity>
+          </View>
           {/* Posts List */}
           <FlatList
             data={posts}
@@ -165,6 +174,18 @@ const ThreadsTab = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+  },
+  headerTitle: {
+    color: 'white',
+    fontSize: 22,
+    fontWeight: 'bold',
   },
   postsList: {
     paddingHorizontal: 20,
