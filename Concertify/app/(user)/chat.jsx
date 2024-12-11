@@ -3,20 +3,20 @@ import { Text, StyleSheet, View, Image, KeyboardAvoidingView, Platform, StatusBa
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getAuth } from 'firebase/auth'; 
-import { getDoc, doc, getDocs, collection, query, where } from 'firebase/firestore'; // Added necessary imports for Firestore queries
+import { getDoc, doc, getDocs, collection, query, where } from 'firebase/firestore'; 
 import { FIRESTORE_DB, FIREBASE_AUTH } from '../../services/firebaseConfig'; 
 import ChatList from '../../components/ChatList';
 
 const Chat = () => {
   const [profileImage, setProfileImage] = useState(null);
-  const [users, setUsers] = useState([]); // Use an empty array as default value for users
-  const userId = FIREBASE_AUTH.currentUser?.uid; // Get the current user's UID
+  const [users, setUsers] = useState([]);
+  const userId = FIREBASE_AUTH.currentUser?.uid; 
 
   useEffect(() => {
     if (userId) {
-      getUsers(); // Fetch users only if the user is logged in
+      getUsers(); 
     }
-  }, [userId]); // Dependency array, to fetch users when `userId` changes
+  }, [userId]); 
 
   const getUsers = async () => {
     try {
@@ -24,10 +24,10 @@ const Chat = () => {
       const querySnapshot = await getDocs(q);
       let data = [];
       querySnapshot.forEach(doc => {
-        data.push(doc.data()); // Extract user data
+        data.push(doc.data()); 
       });
-      setUsers(data); // Update the state with the fetched users
-      //console.log('Got users: ', data); // Log the users to the console
+      setUsers(data); 
+      //console.log('Got users: ', data); 
     } catch (error) {
       console.error('Error fetching users: ', error);
     }
@@ -36,15 +36,15 @@ const Chat = () => {
   // Function to fetch the profile image of the current user
   const fetchProfileImage = async () => {
     try {
-      const auth = getAuth(); // Get Firebase Auth instance
-      const currentUserId = auth.currentUser?.uid; // Get current user's UID
+      const auth = getAuth(); 
+      const currentUserId = auth.currentUser?.uid;
 
       if (currentUserId) {
-        const userDocRef = doc(FIRESTORE_DB, 'users', currentUserId); // Reference to the user's document
-        const userDoc = await getDoc(userDocRef); // Get the user document
+        const userDocRef = doc(FIRESTORE_DB, 'users', currentUserId); 
+        const userDoc = await getDoc(userDocRef); 
 
         if (userDoc.exists()) {
-          setProfileImage(userDoc.data().profileImage); // Set the profile image URL
+          setProfileImage(userDoc.data().profileImage); 
         } else {
           console.log('User document not found.');
         }
@@ -56,10 +56,9 @@ const Chat = () => {
     }
   };
 
-  // Use effect hook to fetch the profile image when the component mounts
   useEffect(() => {
-    fetchProfileImage(); // Fetch profile image when the component is mounted
-  }, []); // Empty dependency array ensures it runs only once when the component mounts
+    fetchProfileImage(); 
+  }, []); 
 
   return (
     <LinearGradient colors={['#040306', '#131624']} style={{ flex: 1 }}>
@@ -70,7 +69,7 @@ const Chat = () => {
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Chat</Text>
             {profileImage && (
-              <Image source={{ uri: profileImage }} style={styles.profileImage} />
+              <Image source={{ uri: String(profileImage) }} style={styles.profileImage} />
             )}
           </View>
 

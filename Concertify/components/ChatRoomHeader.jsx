@@ -10,7 +10,7 @@ export default function ChatRoomHeader({ user, router }) {
       </TouchableOpacity>
       <View style={styles.userInfo}>
         {user?.profileImage ? (
-          <Image source={{ uri: user.profileImage }} style={styles.profileImage} />
+          <Image source={{ uri: String(user.profileImage) }} style={styles.profileImage} />
         ) : (
           <Ionicons name="person-circle-outline" size={40} color="white" />
         )}

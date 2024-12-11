@@ -127,7 +127,7 @@ const ThreadsTab = () => {
         
         <View style={styles.postMiniContainer}>
           <View style={{flexDirection: 'row', justifyContent:'flex-start', alignItems: 'center'}}>
-            <Image source={{ uri: item.profilePicture }} style={styles.profilePicture} />
+            <Image source={{ uri: String(item.profilePicture) }} style={styles.profilePicture} />
             <Text style={styles.postUser}>{item.username}</Text>
           </View>
           <Text style={styles.timestamp}>{new Date(item.timestamp.seconds * 1000).toLocaleString()}</Text>

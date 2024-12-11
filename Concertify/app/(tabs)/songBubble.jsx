@@ -249,7 +249,7 @@ const SongBubble = () => {
                     <Text style={styles.postedText}>{new Date(item.timestamp.seconds * 1000).toLocaleTimeString()}</Text>
                   </View>
                   <View style={styles.postedMiniItem2}>
-                    <Image source={{ uri: item.albumArt }} style={styles.albumArt} />
+                    <Image source={{ uri: String(item.albumArt) }} style={styles.albumArt} />
                     <View style={styles.songDetails}>
                       <Text style={styles.songTitle}>{item.title}</Text>
                       <Text style={styles.songArtist}>{item.artist}</Text>
