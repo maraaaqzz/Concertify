@@ -37,8 +37,6 @@ const Search = () => {
     }
   };
 
-
-
   useEffect(() => {
     if (query) fetchFilteredConcerts();
   }, [query]);
