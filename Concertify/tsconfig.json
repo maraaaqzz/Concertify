@@ -14,5 +14,5 @@
     "app/index.jsx",
     "app/_layout.jsx",
     "nativewind-env.d.ts"
-, "constants/images.js", "services/firebaseConfig.jsx"  ]
+, "constants/images.js", "services/firebaseConfig.jsx", "services/spotifyConfig.jsx"  ]
 }
