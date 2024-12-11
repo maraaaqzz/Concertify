@@ -23,6 +23,6 @@ export default function ChatList({users}) {
 }
 const styles = StyleSheet.create({
     text: {
-      color: 'white', // Makes the text color white
+      color: 'white', 
     },
   });

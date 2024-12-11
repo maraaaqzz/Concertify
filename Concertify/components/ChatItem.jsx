@@ -43,18 +43,18 @@ const styles =  StyleSheet.create({
     gap: 3,
   },
   text: {
-    color: 'white', // Makes the text color white
+    color: 'white', 
     fontSize: 18
   },
   textMessage: {
-      color: 'white', // Makes the text color white
+      color: 'white', 
       fontSize: 13
     },
   profileImage: {
-      width: 60, // Small size for the circle
-      height: 60, // Make it a square for the circle to work
-      borderRadius: 30, // Half of width/height to make it circular
-      marginRight: 10, // Space between the image and any text/content
+      width: 60, 
+      height: 60, 
+      borderRadius: 30, 
+      marginRight: 10, 
       borderWidth: 4,
       borderColor: '#5B4E75',
     },
