@@ -37,8 +37,6 @@ const Search = () => {
     }
   };
 
-
-
   useEffect(() => {
     if (query) fetchFilteredConcerts();
   }, [query]);
@@ -46,15 +44,12 @@ const Search = () => {
   const RenderConcertItem = ({ item }) => (
     <TouchableOpacity
       style={styles.concertCard}
-      onPress={() => router.push({
-        pathname: '/concert',
-        params: {
-          concertId: item.id,
-          name: item.name,
-          artist: item.artist,
-          photoUrl: item.photoUrl,
-        },
-      })}
+      onPress={() =>
+        router.push({
+          pathname: '/concert',
+          params: { concertId: item.id },
+        })
+      }
     >
       <Image
         source={{ uri: item.photoUrl || 'fallback_image_url' }}
@@ -72,14 +67,7 @@ const Search = () => {
     <SafeAreaView style={styles.container}>
       <Text style={styles.headerText}>Search results for</Text>
       <Text style={styles.queryText}>&quot;{query}&quot;</Text>
-      <SearchInput
-        value={query}
-        placeholder="Search by name or artist"
-        onChangeText={(text) => {
-          setQuery(text);
-        }}
-      />
-      <View style={{ marginVertical: 16 }} />
+      <SearchInput />
       {loading ? (
         <ActivityIndicator size="large" color="#cd548d" style={styles.loading} />
       ) : (
@@ -87,10 +75,7 @@ const Search = () => {
           data={concerts}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => <RenderConcertItem item={item} />}
-          contentContainerStyle={styles.listContainer}
-          ListEmptyComponent={() => (
-            <Text style={styles.noResultsText}>No results found</Text>
-          )}
+          ListEmptyComponent={() => <Text style={styles.noResultsText}>No results found</Text>}
         />
       )}
     </SafeAreaView>
@@ -107,12 +92,10 @@ const styles = StyleSheet.create({
     fontSize: 24,
     marginBottom: 16,
     color: '#333',
-   
   },
   queryText: {
     fontSize: 20,
     color: '#333',
-    
     marginBottom: 10,
     marginTop: -10,
     marginLeft: 5,
@@ -121,9 +104,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  listContainer: {
-    paddingBottom: 16,
   },
   concertCard: {
     flexDirection: 'row',
@@ -159,7 +139,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#777',
     marginTop: 32,
-  
   },
 });
 
