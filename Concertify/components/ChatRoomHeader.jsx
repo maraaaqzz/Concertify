@@ -25,21 +25,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
-    paddingVertical: 15,
-    marginTop: 20
+    paddingTop: 50,
+    paddingBottom:15,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    backgroundColor:'#1A1A1D',
   },
   backButton: {
     marginRight: 10, 
-
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   profileImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25, // Corrected for an even circle
+    width: 60,
+    height: 60,
+    borderRadius: 30, // Corrected for an even circle
+    borderWidth: 4,
+    borderColor: '#5B4E75',
   },
   usernameText: {
     marginLeft: 10, // Space between the profile picture and the username

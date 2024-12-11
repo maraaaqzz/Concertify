@@ -6,7 +6,7 @@ import { StyleSheet, Text, Image, View, TouchableOpacity, ScrollView } from 'rea
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { FIREBASE_AUTH ,FIRESTORE_DB } from '../../services/firebaseConfig';
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 const Concert = () => {
   const { concertId, name, photoUrl, location, date, time, description } = useLocalSearchParams();

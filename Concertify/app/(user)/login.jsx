@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { LinearGradient } from "expo-linear-gradient";
-import { Text, TextInput, View, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
+import { Text, TextInput, View, StyleSheet, ImageBackground, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { images } from "../../constants";
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { FIREBASE_AUTH, FIRESTORE_DB} from '../../services/firebaseConfig'
@@ -16,14 +16,14 @@ const LogIn = () => {
   const [username, setUsername] = useState('');
   const [name, setName] = useState('')
   const [password, setPassword] = useState('');
-  const [loading, isLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   
   const submitSignin = async() => {
     if(!email || !password){
         Alert.alert('Error', 'Please fill in all the fields')
         return
       }
-      isLoading(true);
+      setLoading(true);
       try{
         const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
         const user = userCredential.user;
@@ -32,7 +32,7 @@ const LogIn = () => {
       }catch (error) {
         console.error("Error signing in: ", error);
       }finally{
-        isLoading(false)
+        setLoading(false)
       }
   }
 
@@ -41,7 +41,7 @@ const LogIn = () => {
       Alert.alert('Error', 'Please fill in all the fields')
       return 
     }
-    isLoading(true);
+    setLoading(true);
     try{
       const userCredential = await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
       const user = userCredential.user;
@@ -54,17 +54,21 @@ const LogIn = () => {
           email: email,
           password: password,
           concerts: [],
+          about: '',
+          favArtists: '',
+          spotifyToken: '',
+          spotifyTokenExpiry: '',
           createAt: new Date(),
         });
       }catch (e){
           console.error("Error adding document: ", e)
       }
       console.log("User created and data added to firebase")
-      router.dismissAll();
+      router.replace('/home');
     }catch(error){
       console.error("Error signing up", error.message)
     }finally{
-      isLoading(false)
+      setLoading(false)
     }
   }
 
@@ -84,8 +88,7 @@ const LogIn = () => {
           style={styles.gradientOverlay}
         />
       </ImageBackground>
-
-      <SafeAreaView style={styles.contentContainer}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.contentContainer}>
         <View style={styles.tabContainer}>
           <TouchableOpacity 
             onPress={() => setIsSignIn(true)} 
@@ -101,13 +104,14 @@ const LogIn = () => {
             <Text style={[styles.tabText, !isSignIn && styles.activeTabText]}>SIGN UP</Text>
           </TouchableOpacity>
         </View>
-
+        <ScrollView>
         <Text style={styles.title}>{isSignIn ? "Login to Concertify!" : "Sign Up for Concertify!"}</Text>
 
         {isSignIn ? 
         (
           // sign in 
           <>
+          
             <View style={styles.inputContainer}>
               <TextInput 
                 value={email}
@@ -136,7 +140,6 @@ const LogIn = () => {
                 onPress={toggleShowPassword}
               />
             </View>
-
             <TouchableOpacity 
               onPress={submitSignin}
               isLoading={loading}
@@ -233,8 +236,10 @@ const LogIn = () => {
             </Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
+    
   )
 }
 
@@ -293,6 +298,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#333',
     borderRadius: 20,

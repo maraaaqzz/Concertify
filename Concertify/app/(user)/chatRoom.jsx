@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -86,27 +86,28 @@ export default function ChatRoom() {
   return (
     <LinearGradient colors={['#040306', '#131624']} style={styles.container}>
       <ChatRoomHeader user={item} router={router} />
+      
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingView}
       >
-        <View className="h-1 border-b border-neutral-100" />
-        <View />
-        <View style={{ flex: 1 }}>
-          <MessageList messages={messages} currentUser={currentUser} />
-        </View>
-        <View style={styles.inputContainer}>
-          <TextInput
-            ref={inputRef}
-            onChangeText={(value) => (textRef.current = value)}
-            placeholder="Type message..."
-            placeholderTextColor="#aaa"
-            style={styles.textInput}
-          />
-          <TouchableOpacity onPress={handleSendMessage} style={styles.sendButton}>
-            <Ionicons name="send-outline" size={24} color="white" />
-          </TouchableOpacity>
-        </View>
+        <SafeAreaView style={{flex:1}}>
+          <View style={{ flex: 1 }}>
+            <MessageList messages={messages} currentUser={currentUser} />
+          </View>
+          <View style={styles.inputContainer}>
+            <TextInput
+              ref={inputRef}
+              onChangeText={(value) => (textRef.current = value)}
+              placeholder="Type message..."
+              placeholderTextColor="#fff"
+              style={styles.textInput}
+            />
+            <TouchableOpacity onPress={handleSendMessage} style={styles.sendButton}>
+              <Ionicons name="send-outline" size={24} color="white" />
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
       </KeyboardAvoidingView>
     </LinearGradient>
   );
@@ -115,24 +116,23 @@ export default function ChatRoom() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 15,
+    //padding: 15,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1F',
     borderRadius: 25,
     marginHorizontal: 10,
     marginBottom: 10,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    elevation: 2,
   },
   textInput: {
     flex: 1,
     fontSize: 16,
     padding: 10,
-    color: '#000',
+    color: '#fff',
   },
   keyboardAvoidingView: {
     flex: 1,

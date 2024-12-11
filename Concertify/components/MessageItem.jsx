@@ -37,19 +37,19 @@ const styles = StyleSheet.create({
     marginLeft: 15,
   },
   sentMessageBubble: {
-    backgroundColor: '#621e62', // Dark background for sent messages
-    borderRadius: 10,
-    padding: 10,
+    backgroundColor: '#5B4E75', // Dark background for sent messages
+    borderRadius: 18,
+    padding: 12,
     maxWidth: '80%',
   },
   receivedMessageBubble: {
-    backgroundColor: '#333', // Different color for received messages
-    borderRadius: 10,
-    padding: 10,
+    backgroundColor: '#2C253A', // Different color for received messages
+    borderRadius: 18,
+    padding: 12,
     maxWidth: '80%',
   },
   messageText: {
     color: '#fff', // White text color
-    fontSize: 16,
+    fontSize: 17,
   },
 });

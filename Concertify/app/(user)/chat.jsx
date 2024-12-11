@@ -27,7 +27,7 @@ const Chat = () => {
         data.push(doc.data()); // Extract user data
       });
       setUsers(data); // Update the state with the fetched users
-      console.log('Got users: ', data); // Log the users to the console
+      //console.log('Got users: ', data); // Log the users to the console
     } catch (error) {
       console.error('Error fetching users: ', error);
     }

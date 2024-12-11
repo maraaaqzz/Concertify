@@ -1,5 +1,5 @@
-import { Text, View, ScrollView, Image, Animated, Easing } from "react-native";
-import { Link, useRouter } from 'expo-router'; 
+import { Text, ScrollView, Image, Animated, Easing } from "react-native";
+import { useRouter } from 'expo-router'; 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "../constants";
 import React, { useEffect, useRef } from "react";
@@ -15,12 +15,12 @@ export default function Index() {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1, 
-        duration: 1000,
+        duration: 2000,
         useNativeDriver: true,
       }),
       Animated.timing(scaleAnim, {
         toValue: 1,
-        duration: 2000,
+        duration: 5000,
         easing: Easing.bounce, // Add a bounce effect
         useNativeDriver: true,
       })
