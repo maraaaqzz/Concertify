@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { router, useGlobalSearchParams } from 'expo-router';
-import { Text, FlatList, TextInput, StyleSheet, View, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, Image } from 'react-native';
+import { Dimensions, Animated, Text, FlatList, TextInput, StyleSheet, View, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';
 import { collection, addDoc, onSnapshot, orderBy, query, doc, getDoc, updateDoc, arrayUnion, arrayRemove, increment, where, getDocs } from 'firebase/firestore';
 import { images } from '../../constants';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import UserList from '../../components/userList';
 
 const ThreadsTab = () => {
   const [post, setPost] = useState('');
@@ -14,7 +15,11 @@ const ThreadsTab = () => {
   const [username, setUsername] = useState('');
   const userId = FIREBASE_AUTH.currentUser?.uid;
   const { concertId } = useGlobalSearchParams();
+  const [isUserListVisible, setUserListVisible] = useState(false);
+  const slideAnim = useRef(new Animated.Value(Dimensions.get('window').width)).current;
+  const [attendingUsers, setAttendingUsers] = useState([]);
 
+  
   // Fetch the current user’s username
   useEffect(() => {
     const fetchUsername = async () => {
@@ -50,6 +55,31 @@ const ThreadsTab = () => {
       console.error('Error adding post:', error);
     }
   };
+
+  // Fetch users attending the current concert
+useEffect(() => {
+  const fetchAttendingUsers = async () => {
+    try {
+      const usersQuery = query(
+        collection(FIRESTORE_DB, 'users'),
+        where('concerts', 'array-contains', concertId) // Checks if the user has this concertId in their list
+      );
+      const querySnapshot = await getDocs(usersQuery);
+      const users = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        username: doc.data().username,
+        profileImage: doc.data().profileImage || images.profilepic, // Default profile picture
+      }));
+      setAttendingUsers(users);
+    } catch (error) {
+      console.error('Error fetching attending users:', error);
+    }
+  };
+
+  if (concertId) {
+    fetchAttendingUsers();
+  }
+}, [concertId]);
 
   // Fetch posts along with user profile pictures
   useEffect(() => {
@@ -118,6 +148,29 @@ const ThreadsTab = () => {
     }
   };
 
+  const toggleUserList = () => {
+    try {
+      if (isUserListVisible) {
+        // Slide out
+        Animated.timing(slideAnim, {
+          toValue: Dimensions.get('window').width,
+          duration: 300,
+          useNativeDriver: false,
+        }).start(() => setUserListVisible(false));
+      } else {
+        setUserListVisible(true);
+        // Slide in
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: false,
+        }).start();
+      }
+  } catch (error) {
+    console.error('Error toggling like:', error);
+  }
+  };
+
   // Render a single post
   const renderPostItem = ({ item }) => {
     const isLiked = item.likedBy?.includes(userId);
@@ -169,11 +222,16 @@ const ThreadsTab = () => {
   };
 
   return (
+    
     <LinearGradient colors={['#040306', '#131624']} style={{ flex: 1 }}>
         <SafeAreaView style={styles.container} edges={['top']}>
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Threads</Text>
+            <TouchableOpacity onPress={toggleUserList} style={styles.rightCornerButton}>
+              <Ionicons name="people-outline" size={34} color="white" />
+            </TouchableOpacity>
           </View>
+
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
@@ -185,11 +243,11 @@ const ThreadsTab = () => {
             <TouchableOpacity
               onPress={() => addPost(post)}
               style={styles.postButton}
-              disabled={!username || !post.trim()}
-            >
+              disabled={!username || !post.trim()}>
               <Text style={styles.postButtonText}>Post</Text>
             </TouchableOpacity>
           </View>
+
           <FlatList
             data={posts}
             keyExtractor={(item) => item.id}
@@ -197,6 +255,14 @@ const ThreadsTab = () => {
             contentContainerStyle={styles.postsList}
             onScrollBeginDrag={() => Keyboard.dismiss()}
           />
+
+        <UserList
+          isVisible={isUserListVisible}
+          slideAnim={slideAnim}
+          users={attendingUsers}
+          onClose={toggleUserList}
+        />
+        
         </SafeAreaView>
     </LinearGradient>
   );
@@ -215,7 +281,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: 'white',
-    fontSize: 22,
+    fontSize: 30,
     fontWeight: 'bold',
   },
   postsList: {
@@ -303,6 +369,56 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     marginRight: 5,
   },
+  rightCornerButton: {
+    position: 'absolute',
+    right: 20, 
+    top: 15,  
+  },
+  userListContainer: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    right: 0,
+    width: '70%',
+    backgroundColor: '#1A1A1D',
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderBottomLeftRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: -5, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+  },
+  userListTitle: {
+    fontSize: 25,
+    color: 'white',
+    fontWeight: 'bold',
+    marginBottom: 20,
+    marginTop: 45
+  },
+  userItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  userName: {
+    marginLeft: 10,
+    fontSize: 16,
+    color: 'white',
+  },
+  closeButton: {
+    marginTop: 20,
+    backgroundColor: '#5B4E75',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  }
+  
 });
 
 export default ThreadsTab;

@@ -180,6 +180,12 @@ const SongBubble = () => {
             },
           }
         );
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Error Response:', errorText);
+          Alert.alert('Spotify API Error', `Status: ${response.status}. Message: ${errorText}`);
+          return;
+        }
         const data = await response.json();
         setSearchResults(data.tracks?.items || []);
       } catch (error) {
