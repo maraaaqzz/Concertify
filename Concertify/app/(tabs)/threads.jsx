@@ -7,6 +7,7 @@ import { FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';
 import { collection, addDoc, onSnapshot, orderBy, query, doc, getDoc, updateDoc, arrayUnion, arrayRemove, increment, where, getDocs } from 'firebase/firestore';
 import { images } from '../../constants';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import UserList from '../../components/userList';
 
 const ThreadsTab = () => {
   const [post, setPost] = useState('');
@@ -15,7 +16,7 @@ const ThreadsTab = () => {
   const userId = FIREBASE_AUTH.currentUser?.uid;
   const { concertId } = useGlobalSearchParams();
   const [isUserListVisible, setUserListVisible] = useState(false);
-  const slideAnim = useRef(new Animated.Value(Dimensions.get('window').width)).current; 
+  const slideAnim = useRef(new Animated.Value(Dimensions.get('window').width)).current;
   const [attendingUsers, setAttendingUsers] = useState([]);
 
   
@@ -255,25 +256,12 @@ useEffect(() => {
             onScrollBeginDrag={() => Keyboard.dismiss()}
           />
 
-          {isUserListVisible && (
-            <Animated.View style={[styles.userListContainer, { transform: [{ translateX: slideAnim }] }]}>
-              <Text style={styles.userListTitle}>Users</Text>
-              <FlatList
-                data={attendingUsers}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <View style={styles.userItem}>
-                    <Image source={{ uri: item.profileImage }} style={styles.profilePicture} />
-                    <Text style={styles.userName}>{item.username}</Text>
-                  </View>
-                )}
-              />
-
-              <TouchableOpacity onPress={toggleUserList} style={styles.closeButton}>
-                <Text style={styles.closeButtonText}>Close</Text>
-              </TouchableOpacity>
-          </Animated.View>
-        )}
+        <UserList
+          isVisible={isUserListVisible}
+          slideAnim={slideAnim}
+          users={attendingUsers}
+          onClose={toggleUserList}
+        />
         
         </SafeAreaView>
     </LinearGradient>
