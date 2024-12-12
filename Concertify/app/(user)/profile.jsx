@@ -156,19 +156,29 @@ const Profile = () => {
                 <>
                   
                   <Image 
-                      source={profilePicture ? { uri: profilePicture } : images.profilepic}
-                      style={styles.profileImage}
+                    source={
+                      String(profilePicture).trim() 
+                        ? { uri: String(profilePicture) } 
+                        : images.profilepic
+                    }
+                    style={styles.profileImage}
                   />
+
                 </>
               ) :
               (
                 <>
                 <Text style={styles.infoText}>Change your profile information by clicking each item you want to change</Text>
                   <TouchableOpacity onPress={selectImage}>
-                    <Image 
-                        source={profilePicture ? { uri: profilePicture } : images.profilepic}
-                        style={styles.profileImage}
-                    />
+                  <Image 
+                    source={
+                      String(profilePicture).trim() 
+                        ? { uri: String(profilePicture) } 
+                        : images.profilepic
+                    }
+                    style={styles.profileImage}
+                  />
+
                   </TouchableOpacity>
                 </>
               )
