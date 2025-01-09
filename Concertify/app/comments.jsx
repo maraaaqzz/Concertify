@@ -11,13 +11,12 @@ import { images } from '../constants';
 const CommentTab = () => {
   const { concertId, postId, currentUsername } = useLocalSearchParams();
 
-  const [postDetails, setPostDetails] = useState(null); // State for post details
+  const [postDetails, setPostDetails] = useState(null); 
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
 
   const userId = FIREBASE_AUTH.currentUser?.uid;
 
-  // Fetch post details
   useEffect(() => {
     const fetchPostDetails = async () => {
       try {
@@ -36,7 +35,6 @@ const CommentTab = () => {
     fetchPostDetails();
   }, [concertId, postId]);
 
-  // Fetch comments
   useEffect(() => {
     const fetchPosts = () => {
       const postsQuery = query(
@@ -51,16 +49,14 @@ const CommentTab = () => {
             let profilePicture = null;
   
             try {
-              // Query the users collection for a document where 'username' matches
               const usersQuery = query(
                 collection(FIRESTORE_DB, 'users'),
                 where('username', '==', postData.username)
               );
               const userSnapshot = await getDocs(usersQuery);
   
-              // If a document exists, retrieve the profileImage field
               if (!userSnapshot.empty) {
-                const userDoc = userSnapshot.docs[0]; // Assuming usernames are unique
+                const userDoc = userSnapshot.docs[0]; 
                 profilePicture = userDoc.data().profileImage;
               }
             } catch (error) {
@@ -70,7 +66,7 @@ const CommentTab = () => {
             return {
               id: postDoc.id,
               ...postData,
-              profilePicture: profilePicture || images.profilepic, // Default profile picture
+              profilePicture: profilePicture || images.profilepic, 
             };
           })
         );
@@ -255,7 +251,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   liked: {
-    backgroundColor: '#FF69B4',  // Different color for liked state
+    backgroundColor: '#FF69B4',
   },
   likeButtonText: {
     color: '#fff',

@@ -19,8 +19,6 @@ const ThreadsTab = () => {
   const slideAnim = useRef(new Animated.Value(Dimensions.get('window').width)).current;
   const [attendingUsers, setAttendingUsers] = useState([]);
 
-  
-  // Fetch the current user’s username
   useEffect(() => {
     const fetchUsername = async () => {
       if (userId) {
@@ -37,7 +35,6 @@ const ThreadsTab = () => {
     fetchUsername();
   }, [userId]);
 
-  // Add a new post
   const addPost = async (text) => {
     if (!text.trim()) return;
     try {
@@ -56,19 +53,18 @@ const ThreadsTab = () => {
     }
   };
 
-  // Fetch users attending the current concert
 useEffect(() => {
   const fetchAttendingUsers = async () => {
     try {
       const usersQuery = query(
         collection(FIRESTORE_DB, 'users'),
-        where('concerts', 'array-contains', concertId) // Checks if the user has this concertId in their list
+        where('concerts', 'array-contains', concertId) 
       );
       const querySnapshot = await getDocs(usersQuery);
       const users = querySnapshot.docs.map(doc => ({
         id: doc.id,
         username: doc.data().username,
-        profileImage: doc.data().profileImage || images.profilepic, // Default profile picture
+        profileImage: doc.data().profileImage || images.profilepic, 
       }));
       setAttendingUsers(users);
     } catch (error) {
@@ -81,7 +77,6 @@ useEffect(() => {
   }
 }, [concertId]);
 
-  // Fetch posts along with user profile pictures
   useEffect(() => {
     const fetchPosts = () => {
       const postsQuery = query(
@@ -96,16 +91,14 @@ useEffect(() => {
             let profilePicture = null;
   
             try {
-              // Query the users collection for a document where 'username' matches
               const usersQuery = query(
                 collection(FIRESTORE_DB, 'users'),
                 where('username', '==', postData.username)
               );
               const userSnapshot = await getDocs(usersQuery);
   
-              // If a document exists, retrieve the profileImage field
               if (!userSnapshot.empty) {
-                const userDoc = userSnapshot.docs[0]; // Assuming usernames are unique
+                const userDoc = userSnapshot.docs[0]; 
                 profilePicture = userDoc.data().profileImage;
               }
             } catch (error) {
@@ -115,7 +108,7 @@ useEffect(() => {
             return {
               id: postDoc.id,
               ...postData,
-              profilePicture: profilePicture || images.profilepic, // Default profile picture
+              profilePicture: profilePicture || images.profilepic,
             };
           })
         );
@@ -127,7 +120,7 @@ useEffect(() => {
   
     fetchPosts();
   }, [concertId]);
-  // Handle like button toggle
+
   const handleLikeToggle = async (postId, isLiked) => {
     const postRef = doc(FIRESTORE_DB, 'concerts', concertId, 'threads', postId);
 
@@ -171,7 +164,6 @@ useEffect(() => {
   }
   };
 
-  // Render a single post
   const renderPostItem = ({ item }) => {
     const isLiked = item.likedBy?.includes(userId);
 

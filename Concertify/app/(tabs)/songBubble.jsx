@@ -50,7 +50,6 @@ const SongBubble = () => {
   const userId = FIREBASE_AUTH.currentUser?.uid;
   const { concertId } = useGlobalSearchParams();
 
-  // State Variables
   const [accessToken, setAccessToken] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -58,7 +57,7 @@ const SongBubble = () => {
   const [fetchedSongs, setFetchedSongs] = useState([]);
   const [username, setUsername] = useState('');
 
-  // Create the auth request
+  // auth request
   const [request, response, promptAsync] = useAuthRequest(
     {
       clientId: CLIENT_ID,
@@ -69,7 +68,7 @@ const SongBubble = () => {
     discovery
   );
 
-  // Save token with expiry time
+  // save token with expiry time
   const saveAccessToken = async (token, expiresIn) => {
     if (!userId) return;
   
@@ -83,7 +82,7 @@ const SongBubble = () => {
     }
   };
 
-  // Retrieve token from SecureStore
+  // get token from SecureStore
   const getAccessToken = async () => {
     const userId = FIREBASE_AUTH.currentUser?.uid;
     if (!userId) return null;
@@ -93,7 +92,6 @@ const SongBubble = () => {
       const userDoc = await getDoc(userRef);
       if (userDoc.exists()) {
         const data = userDoc.data();
-        // Check if token is expired
         if (data.spotifyTokenExpiry && Date.now() < data.spotifyTokenExpiry) {
           return data.spotifyToken;
         }
@@ -105,12 +103,12 @@ const SongBubble = () => {
     }
   };
 
-  // Handle Spotify OAuth response
+  // Spotify OAuth response
   useEffect(() => {
     const initializeToken = async () => {
       const token = await getAccessToken();
       if (!token) {
-        // Trigger login if no valid token is found
+        // trigger login if no valid token is found
         setAccessToken(null);
         return;
       }
@@ -122,7 +120,7 @@ const SongBubble = () => {
     if (response?.type === 'success') {
       const { access_token, expires_in } = response.params;
       setAccessToken(access_token);
-      saveAccessToken(access_token, expires_in); // Overwrite any previous invalid tokens
+      saveAccessToken(access_token, expires_in); 
     }
   }, [response]);
 
@@ -164,7 +162,7 @@ const SongBubble = () => {
     }
   }, [postedSong, accessToken]);
 
-  // Search for songs on Spotify
+  // search for songs
   const searchSpotify = async (query) => {
     if (!accessToken) {
       Alert.alert('No Access Token', 'Please log in first.');
@@ -195,7 +193,7 @@ const SongBubble = () => {
     }
   };
 
-  // Handle posting song to Firebase
+  // handle posting song to Firebase
   const handlePostSong = (track) => {
     const songDetails = {
       username: username,
@@ -229,7 +227,6 @@ const SongBubble = () => {
     }
   };
 
-  // Open song link on Spotify
   const openSpotifyLink = (url) => {
     Linking.openURL(url).catch((err) => {
       console.error('Failed to open URL:', err);

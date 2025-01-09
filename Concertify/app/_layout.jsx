@@ -21,7 +21,7 @@ const commonHeaderOptions = {
   headerTransparent: true,
   headerTitleAlign: 'left',
   headerTitleStyle: styles.headerTitle,
-  headerTintColor: '#FFFFFF', // Arrow color
+  headerTintColor: '#FFFFFF', 
 };
 
 const RootLayout = () => {
