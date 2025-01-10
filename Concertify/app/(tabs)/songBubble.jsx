@@ -27,7 +27,7 @@ import {
   doc,
   getDoc,
 } from 'firebase/firestore';
-import { router, useGlobalSearchParams } from 'expo-router';
+import { useGlobalSearchParams } from 'expo-router';
 
 // Spotify OAuth Config
 const CLIENT_ID = '4eb8e4c38a89447095e9dfa069ad49e6';
@@ -309,17 +309,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    //alignItems: 'center',
-    //backgroundColor: '#131624',
-  },
-  list:{
-    
   },
   button: {
     backgroundColor: '#1DB954',
     padding: 20,
     borderRadius: 30,
-    //width: '80%',
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal:20,
@@ -330,7 +324,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   searchContainer: {
-    //flex: 1,
     flexDirection: 'row',
     justifyContent: 'center',
     paddingVertical: 12,
@@ -353,7 +346,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderRadius: 30,
     padding: 10,
-    //marginBottom: 10,
   },
   resultItem: {
     flexDirection: 'row',
@@ -387,13 +379,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   postedSongItem: {
-    //flexDirection: 'row',
     alignItems: 'center',
-    padding: 15,
+    padding: 10,
+    paddingVertical:20,
     marginBottom: 10,
     backgroundColor: '#282C35',
     borderRadius: 55,
-    marginHorizontal: 15,
+    marginHorizontal: 10,
   },
   postedText: {
     color: '#fff',

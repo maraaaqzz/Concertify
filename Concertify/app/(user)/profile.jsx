@@ -1,246 +1,248 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, View, Text, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  StyleSheet,
+  ScrollView,
+  View,
+  Text,
+  Image,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  FlatList,
+} from 'react-native';
 import { LinearGradient } from "expo-linear-gradient";
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { images } from "../../constants";
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {requestMediaLibraryPermissionsAsync , launchImageLibraryAsync } from 'expo-image-picker'
+import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from 'expo-image-picker';
+import Post from '../../components/Post';
 
 const Profile = () => {
-  const [enterText, setEnterText] = useState(false);
+  const [isUserDetailsTab, setIsUserDetailsTab] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
   const [aboutMe, setAboutMe] = useState("");
   const [favoriteArtists, setFavoriteArtists] = useState("");
   const [profilePicture, setProfilePicture] = useState("");
   const [concertsAttended, setConcertsAttended] = useState(0);
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState("");
+  const [userThreads, setUserThreads] = useState([]);
+  const userId = FIREBASE_AUTH.currentUser?.uid;
   const router = useRouter();
-  const [user, setUser] = useState(null);
+
+  const fetchUserData = async (userId) => {
+    try {
+      const userDoc = await getDoc(doc(FIRESTORE_DB, 'users', userId));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        setUsername(data.username || "");
+        setConcertsAttended(data.concerts?.length || 0);
+        setProfilePicture(data.profileImage || images.profilepic);
+        setAboutMe(data.about || "Tell us something about you...");
+        setFavoriteArtists(data.favArtists || "Tell us your favorite artists...");
+      } else {
+        console.error("User document not found!");
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  const fetchUserThreads = async (username) => {
+    try {
+      const concertsSnapshot = await getDocs(collection(FIRESTORE_DB, 'concerts'));
+      const threads = [];
+  
+      const promises = concertsSnapshot.docs.map(async (concertDoc) => {
+        const concertName = concertDoc.data().name;
+        const threadsQuery = query(
+          collection(concertDoc.ref, 'threads'),
+          where('username', '==', username),
+          orderBy('timestamp', 'desc')
+        );
+        const threadsSnapshot = await getDocs(threadsQuery);
+        threadsSnapshot.forEach((doc) => {
+          threads.push({ id: doc.id, concertName, ...doc.data() });
+        });
+      });
+  
+      await Promise.all(promises);
+      console.log(threads); // Log fetched threads
+      setUserThreads(threads);
+      console.log("THreads:" ,threads);
+    } catch (error) {
+      console.error("Error fetching user threads:", error);
+    }
+  };
 
   const selectImage = async () => {
     const { status } = await requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      alert('Sorry, we need camera roll permissions to make this work!');
+      alert('Camera roll permission is required!');
       return;
     }
 
     const result = await launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
-      aspect: [1, 1], // Square aspect ratio
+      aspect: [1, 1],
       quality: 0.5,
     });
-    //console.log(result);
 
     if (!result.canceled) {
-      //console.log(result.assets[0].uri);
-      await uploadToCloudinary(result.assets[0].uri); // Upload to Cloudinary
+      uploadToCloudinary(result.assets[0].uri);
     }
   };
 
-  const uploadToCloudinary = async (imageuri) => {
+  const uploadToCloudinary = async (imageUri) => {
     try {
-      // Ensure we are passing a valid URI
-      console.log("Uploading image with URI:", imageuri);
-  
       const formData = new FormData();
-  
-      // Append the file to the FormData
-      formData.append('file', {
-        uri: imageuri,
-        type: 'image/*',
-        name: 'profilsade_picture.jpg',
-      });
-  
-      // Append required Cloudinary parameters
+      formData.append('file', { uri: imageUri, type: 'image/*', name: 'profile_picture.jpg' });
       formData.append('upload_preset', 'profile_picture');
       formData.append('cloud_name', 'dwfgosr2l');
-  
-      // Perform the fetch request
+
       const response = await fetch('https://api.cloudinary.com/v1_1/dwfgosr2l/image/upload', {
         method: 'POST',
         body: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
       });
-  
+
       const result = await response.json();
-  
       if (response.ok) {
-        //Save the Cloudinary URL to Firestore
-        const userDoc = doc(FIRESTORE_DB, 'users', user.uid);
-        await updateDoc(userDoc, { profileImage: result.secure_url });
+        await updateDoc(doc(FIRESTORE_DB, 'users', userId), { profileImage: result.secure_url });
         setProfilePicture(result.secure_url);
       } else {
-        console.error('Cloudinary Upload Failed:', result.error.message);
+        console.error("Error uploading to Cloudinary:", result.error.message);
       }
     } catch (error) {
-      console.error('Error uploading to Cloudinary:', error);
+      console.error("Cloudinary upload error:", error);
     }
   };
 
-  //for sobmitting changes made in profile
   const submitEdit = async () => {
-    const userDoc = doc(FIRESTORE_DB, 'users', user.uid);
-    try{
-      console.log(aboutMe);
-      await updateDoc(userDoc, {
+    try {
+      await updateDoc(doc(FIRESTORE_DB, 'users', userId), {
         about: aboutMe,
-        favArtists: favoriteArtists
+        favArtists: favoriteArtists,
       });
-      setEnterText(false);
-    } catch (error) { 
-      console.error("Error submitting user data:", error);
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error updating profile:", error);
     }
-  }
-  
-  //this function signs out the user
+  };
+
   const signOutUser = async () => {
     try {
-        await FIREBASE_AUTH.signOut();
-        router.dismissAll();
-        router.replace('/home');
-    } catch (e) {
-        console.log(e);
-    }
-  }
-
-  const fetchData = async (userId) => {
-    try {
-      const userDoc = await getDoc(doc(FIRESTORE_DB, 'users', userId));
-      if (userDoc.exists()) {
-        setUsername(userDoc.data().username);
-        setConcertsAttended(userDoc.data().concerts.length);
-        if(userDoc.data().profileImage){
-          setProfilePicture(userDoc.data().profileImage)
-        } else {
-          setProfilePicture(images.profilepic);
-        }
-        if(userDoc.data().about){
-          setAboutMe(userDoc.data().about)
-        } else {
-          setAboutMe("Tell us something about you...")
-        }
-        if(userDoc.data().favArtists){
-          setFavoriteArtists(userDoc.data().favArtists);
-        } else {
-          setFavoriteArtists("Tell us your favourite artists...");
-        }
-      } else {
-        console.log('No such user!');
-      }
+      await FIREBASE_AUTH.signOut();
+      router.replace('/home');
     } catch (error) {
-      console.error('Error fetching username: ', error);
+      console.error("Sign-out error:", error);
     }
-  }; 
+  };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, (curruser) => {
-      if (curruser) {
-        fetchData(curruser.uid);
-        setUser(curruser);
-      } 
+    const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, (currentUser) => {
+      if (currentUser) {
+        fetchUserData(currentUser.uid);
+        fetchUserThreads(username);
+      }
     });
     return unsubscribe;
-  }, []);
+  }, [username]);
 
   return (
     <LinearGradient colors={['#040306', '#131624']} style={styles.container}>
       <SafeAreaView style={styles.container}>
         <View style={styles.upperContainer}>
-            { !enterText ?
-              ( 
-                <>
-                  
-                  <Image 
-                    source={
-                      String(profilePicture).trim() 
-                        ? { uri: String(profilePicture) } 
-                        : images.profilepic
-                    }
-                    style={styles.profileImage}
-                  />
-
-                </>
-              ) :
-              (
-                <>
-                <Text style={styles.infoText}>Change your profile information by clicking each item you want to change</Text>
-                  <TouchableOpacity onPress={selectImage}>
-                  <Image 
-                    source={
-                      String(profilePicture).trim() 
-                        ? { uri: String(profilePicture) } 
-                        : images.profilepic
-                    }
-                    style={styles.profileImage}
-                  />
-
-                  </TouchableOpacity>
-                </>
-              )
-            }
-            <Text style={styles.userName}> { `${username}`}</Text>
-        </View>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex : 1}}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* About Me Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About Me</Text>
-          <TextInput
-            editable={enterText}
-            style={styles.input}
-            value={aboutMe}
-            onChangeText={setAboutMe}
-            multiline
-          />
+          <TouchableOpacity onPress={isEditing ? selectImage : null}>
+            <Image
+              source={String(profilePicture).trim() ? { uri: profilePicture } : images.profilepic}
+              style={styles.profileImage}
+            />
+          </TouchableOpacity>
+          <Text style={styles.userName}>{username}</Text>
         </View>
 
-        {/* Favorite Artists Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Favorite Artists</Text>
-          <TextInput
-            editable={enterText}
-            style={styles.input}
-            value={favoriteArtists}
-            onChangeText={setFavoriteArtists}
-            multiline
-          />
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            onPress={() => setIsUserDetailsTab(true)}
+            style={[styles.tab, isUserDetailsTab && styles.activeTab]}
+          >
+            <Text style={[styles.tabText, isUserDetailsTab && styles.activeTabText]}>User Details</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setIsUserDetailsTab(false)}
+            style={[styles.tab, !isUserDetailsTab && styles.activeTab]}
+          >
+            <Text style={[styles.tabText, !isUserDetailsTab && styles.activeTabText]}>Posts</Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Concerts Attended</Text>
-          <Text style={styles.concertCount}>{concertsAttended}</Text>
-        </View>
-      </ScrollView>
-      </KeyboardAvoidingView>
-      <View style={styles.buttons}>
-      { !enterText ?
-      (
-        <>
-            {/* Edit Profile Button */}
-            <TouchableOpacity style={styles.editButton} onPress={() => {setEnterText(true)}}>
-              <Text style={styles.editButtonText}>Edit Profile</Text>
-            </TouchableOpacity>
-        </>
-      ) :
-      (
-        <>
-            {/* Edit Profile Button */}
+        {isUserDetailsTab ? (
+          <>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>About Me</Text>
+                <TextInput
+                  editable={isEditing}
+                  style={styles.input}
+                  value={aboutMe}
+                  onChangeText={setAboutMe}
+                />
+              </View>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Favorite Artists</Text>
+                <TextInput
+                  editable={isEditing}
+                  style={styles.input}
+                  value={favoriteArtists}
+                  onChangeText={setFavoriteArtists}
+                />
+              </View>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Concerts Attended</Text>
+                <Text style={styles.concertCount}>{concertsAttended}</Text>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+          <View style={styles.buttons}>
+          {isEditing ? (
             <TouchableOpacity style={styles.editButton} onPress={submitEdit}>
               <Text style={styles.editButtonText}>Submit</Text>
             </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.editButton} onPress={() => setIsEditing(true)}>
+              <Text style={styles.editButtonText}>Edit Profile</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.signOutButton} onPress={signOutUser}>
+            <Text style={styles.signOutText}>Sign Out</Text>
+          </TouchableOpacity>
+        </View>
         </>
-      )
-      }
-        {/* Sign Out Button */}
-        <TouchableOpacity style={styles.signOutButton} onPress={signOutUser}>
-          <Text style={styles.signOutText}>Sign Out</Text>
-        </TouchableOpacity>
-      </View>
+        ) : (
+          <FlatList
+            data={userThreads}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => {
+              return(
+                <Post
+                  item={item}
+                  userId={userId}
+                  showLike={false}
+                  showCommentButton={false}
+                  showProfile = {false}
+                  containerStyle={{ marginHorizontal: 16, marginBottom: 10 }}
+                />
+              )
+            }}
+          />
+        )}
+
+        
       </SafeAreaView>
     </LinearGradient>
   );
@@ -351,6 +353,28 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  tabContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#A64D79', 
+  },
+  tabText: {
+    fontSize: 18,
+    color: '#999',
+  },
+  activeTabText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+
 });
 
 export default Profile;

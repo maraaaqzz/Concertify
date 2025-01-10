@@ -1,20 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import { Text, FlatList, TextInput, StyleSheet, View, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, Image } from 'react-native';
+import {
+  Text,
+  FlatList,
+  TextInput,
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/firebaseConfig';
-import { collection, doc, getDoc, addDoc, onSnapshot, orderBy, query, updateDoc, arrayUnion, arrayRemove, increment, getDocs, where } from 'firebase/firestore';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import {
+  collection,
+  doc,
+  getDoc,
+  addDoc,
+  onSnapshot,
+  orderBy,
+  query,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+  increment,
+  getDocs,
+  where,
+} from 'firebase/firestore';
+import { Ionicons } from '@expo/vector-icons';
 import { images } from '../constants';
+import Post from '../components/Post'
 
 const CommentTab = () => {
   const { concertId, postId, currentUsername } = useLocalSearchParams();
 
-  const [postDetails, setPostDetails] = useState(null); 
+  const [postDetails, setPostDetails] = useState(null);
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
-
   const userId = FIREBASE_AUTH.currentUser?.uid;
 
   useEffect(() => {
@@ -22,8 +46,28 @@ const CommentTab = () => {
       try {
         const postRef = doc(FIRESTORE_DB, 'concerts', concertId, 'threads', postId);
         const postSnap = await getDoc(postRef);
+  
         if (postSnap.exists()) {
-          setPostDetails(postSnap.data());
+          const postData = postSnap.data();
+  
+          let profilePicture = null;
+          try {
+            const usersQuery = query(
+              collection(FIRESTORE_DB, 'users'),
+              where('username', '==', postData.username)
+            );
+            const userSnapshot = await getDocs(usersQuery);
+            if (!userSnapshot.empty) {
+              profilePicture = userSnapshot.docs[0]?.data()?.profileImage;
+            }
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+          }
+  
+          setPostDetails({
+            ...postData,
+            profilePicture: profilePicture || images.profilepic,
+          });
         } else {
           console.error('Post not found');
         }
@@ -31,60 +75,58 @@ const CommentTab = () => {
         console.error('Error fetching post details:', error);
       }
     };
-
+  
     fetchPostDetails();
   }, [concertId, postId]);
 
   useEffect(() => {
-    const fetchPosts = () => {
-      const postsQuery = query(
+    const fetchComments = () => {
+      const commentsQuery = query(
         collection(FIRESTORE_DB, 'concerts', concertId, 'threads', postId, 'comments'),
         orderBy('timestamp', 'desc')
       );
-  
-      const unsubscribe = onSnapshot(postsQuery, async (querySnapshot) => {
-        const postsArray = await Promise.all(
-          querySnapshot.docs.map(async (postDoc) => {
-            const postData = postDoc.data();
+
+      const unsubscribe = onSnapshot(commentsQuery, async (querySnapshot) => {
+        const commentsArray = await Promise.all(
+          querySnapshot.docs.map(async (doc) => {
+            const data = doc.data();
             let profilePicture = null;
-  
             try {
               const usersQuery = query(
                 collection(FIRESTORE_DB, 'users'),
-                where('username', '==', postData.username)
+                where('username', '==', data.username)
               );
               const userSnapshot = await getDocs(usersQuery);
-  
               if (!userSnapshot.empty) {
-                const userDoc = userSnapshot.docs[0]; 
-                profilePicture = userDoc.data().profileImage;
+                profilePicture = userSnapshot.docs[0]?.data()?.profileImage;
               }
             } catch (error) {
-              console.error('Error fetching profile picture:', error);
+              console.error('Error fetching user data:', error);
             }
-  
+
             return {
-              id: postDoc.id,
-              ...postData,
-              profilePicture: profilePicture || images.profilepic, 
+              id: doc.id,
+              ...data,
+              profilePicture: profilePicture || images.profilepic,
             };
+            
           })
         );
-        setComments(postsArray);
+        setComments(commentsArray);
       });
-  
-      return unsubscribe;
 
+      return unsubscribe;
     };
-  
-    fetchPosts();
+
+    return fetchComments();
   }, [concertId, postId]);
 
-  const addComment = async (text) => {
+  const addComment = async () => {
+    if (!comment.trim()) return;
     try {
       await addDoc(collection(FIRESTORE_DB, 'concerts', concertId, 'threads', postId, 'comments'), {
         username: currentUsername,
-        content: text,
+        content: comment.trim(),
         timestamp: new Date(),
         likes: 0,
         likedBy: [],
@@ -95,19 +137,40 @@ const CommentTab = () => {
     }
   };
 
-  const handleLikeToggle = async (commentId, isLiked) => {
-    const postRef = doc(FIRESTORE_DB, 'concerts', concertId, 'threads', postId, 'comments', commentId);
+  const toggleLike = async (targetId, isLiked, isComment) => {
+    const ref = doc(
+      FIRESTORE_DB,
+      'concerts',
+      concertId,
+      'threads',
+      postId,
+      isComment ? 'comments' : '',
+      targetId
+    );
 
-    if (isLiked) {
-      await updateDoc(postRef, {
-        likedBy: arrayRemove(userId),
-        likes: increment(-1),
+    try {
+      await updateDoc(ref, {
+        likedBy: isLiked ? arrayRemove(userId) : arrayUnion(userId),
+        likes: increment(isLiked ? -1 : 1),
       });
-    } else {
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    }
+  };
+
+  const togglePostLike = async () => {
+    if (!postDetails) return;
+
+    const postRef = doc(FIRESTORE_DB, 'concerts', concertId, 'threads', postId);
+    const isLiked = postDetails.likedBy?.includes(userId);
+
+    try {
       await updateDoc(postRef, {
-        likedBy: arrayUnion(userId),
-        likes: increment(1),
+        likedBy: isLiked ? arrayRemove(userId) : arrayUnion(userId),
+        likes: increment(isLiked ? -1 : 1),
       });
+    } catch (error) {
+      console.error('Error toggling like for post:', error);
     }
   };
 
@@ -115,53 +178,57 @@ const CommentTab = () => {
     const isLiked = item.likedBy?.includes(userId);
 
     return (
-      <View style={styles.postContainer}>
-        
-        <View style={styles.postMiniContainer}>
-          <View style={{flexDirection: 'row', justifyContent:'flex-start', alignItems: 'center'}}>
-            <Image source={{ uri: String(item.profilePicture) }} style={styles.profilePicture} />
-            <Text style={styles.postUser}>{item.username}</Text>
-          </View>
-          <Text style={styles.timestamp}>{new Date(item.timestamp.seconds * 1000).toLocaleString()}</Text>
-        </View>
-
-        <Text style={styles.postContent}>{item.content}</Text>
-        
-        <View style={styles.likeContainer}>
-
-          <TouchableOpacity
-            onPress={() => handleLikeToggle(item.id, isLiked)}
-            style={{flexDirection:'row', alignItems: 'center'}}
-            >
-            <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={30} color="#5B4E75"/>
-            <Text style={styles.lowerText}>{item.likes} {item.likes === 1 ? 'Like' : 'Likes'}</Text>
-          </TouchableOpacity>
-
-        </View>
-      </View>
+      <Post
+        item={item}
+        userId={userId}
+        onLikeToggle={(id) => toggleLike(id, isLiked, true)}
+        showCommentButton={false}
+        containerStyle={{ marginHorizontal: 16, marginBottom: 10 }}
+      />
     );
   };
 
   return (
     <LinearGradient colors={['#040306', '#131624']} style={{ flex: 1 }}>
-      <KeyboardAvoidingView style={{ flex: 1, marginBottom: 30 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <SafeAreaView style={styles.container}>
-          {postDetails ? (
+          {postDetails && (
             <View style={styles.postContainer}>
-              <Text style={styles.postUser}>{postDetails.username}</Text>
+              <View style={styles.postMiniContainer}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Image
+                    source={{ uri: postDetails.profilePicture || images.profilepic }}
+                    style={styles.profilePicture}
+                  />
+                  <Text style={styles.postUser}>{postDetails.username}</Text>
+                </View>
+                <Text style={styles.timestamp}>
+                  {new Date(postDetails.timestamp.seconds * 1000).toLocaleString()}
+                </Text>
+              </View>
               <Text style={styles.postContent}>{postDetails.content}</Text>
+              <View style={styles.likeContainer}>
+                <TouchableOpacity onPress={togglePostLike} style={{flexDirection:'row', alignItems: 'center'}}>
+                  <Ionicons
+                    name={postDetails.likedBy?.includes(userId) ? 'heart' : 'heart-outline'}
+                    size={24}
+                    color="#5B4E75"
+                  />
+                  <Text style={styles.lowerText}>
+                    {postDetails.likes || 0} {postDetails.likes === 1 ? 'Like' : 'Likes'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          ) : (
-            <Text style={styles.loadingText}>Loading post...</Text>
           )}
           <FlatList
             data={comments}
             keyExtractor={(item) => item.id}
             renderItem={renderCommentItem}
             contentContainerStyle={styles.commentList}
-            onScrollBeginDrag={() => Keyboard.dismiss()}
-            initialNumToRender={5}
-            maxToRenderPerBatch={10}
           />
           <View style={styles.inputContainer}>
             <TextInput
@@ -169,12 +236,12 @@ const CommentTab = () => {
               placeholder="Respond to post"
               placeholderTextColor="#ccc"
               value={comment}
-              onChangeText={(text) => setComment(text)}
+              onChangeText={setComment}
             />
             <TouchableOpacity
-              onPress={() => addComment(comment)}
+              onPress={addComment}
               style={styles.commentButton}
-              disabled={!currentUsername || !comment.trim()}
+              disabled={!comment.trim()}
             >
               <Text style={styles.commentButtonText}>Comment</Text>
             </TouchableOpacity>
@@ -190,114 +257,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   postContainer: {
-    backgroundColor: '#333',
-    padding: 15,
-    borderRadius: 20,
-    marginBottom: 10,
-  },
-  postUser: {
-    marginBottom: 5,
-    alignContent: 'center',
-    color: '#aaa',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  postContent: {
-    color: '#fff',
-    fontSize: 23,
-    marginBottom: 5,
-  },
-  commentList: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  commentContainer: {
-    backgroundColor: '#333',
-    padding: 15,
-    borderRadius: 20,
-    marginBottom: 10,
-  },
-  commentUserContainer:{
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 15
-  },
-  commentUser: {
-    color: '#aaa',
-    fontSize: 15,
-    fontWeight: 'bold',
-  },
-  commentContent: {
-    color: '#fff',
-    fontSize: 19,
-    marginBottom: 5,
-  },
-  timestamp: {
-    color: '#bbb',
-    fontSize: 12,
-  },
-  likeContainer: {
-    justifyContent: 'space-between',
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  likeButton: {
-    backgroundColor: '#A64D79',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 5,
-    marginRight: 10,
-  },
-  liked: {
-    backgroundColor: '#FF69B4',
-  },
-  likeButtonText: {
-    color: '#fff',
-    fontSize: 14,
-  },
-  likeCount: {
-    color: '#ccc',
-    fontSize: 14,
-    flex: 3,
-  },
-  inputContainer: {
-    position: 'absolute',
-    bottom: 2,
-    left: 4,
-    right: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    backgroundColor: '#333',
-    paddingHorizontal: 15,
-    borderRadius: 20,
-    borderColor: 'white',
-  },
-  input: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    color: '#fff',
-    backgroundColor: '#333',
-    borderRadius: 10,
-    fontSize: 16,
-    marginRight: 10,
-  },
-  commentButton: {
-    backgroundColor: '#A64D79',
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  commentButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  postContainer: {
     backgroundColor: '#1A1A1D',
     padding: 8,
     borderRadius: 20,
@@ -307,8 +266,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding:10,
-    borderRadius: 20,
+    padding: 10,
+  },
+  userInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   postUser: {
     color: '#aaa',
@@ -320,19 +282,15 @@ const styles = StyleSheet.create({
     fontSize: 19,
     marginVertical: 5,
     marginHorizontal: 5,
-    padding:5,
-    borderRadius: 20,
   },
   timestamp: {
     color: '#bbb',
     fontSize: 12,
   },
   likeContainer: {
-    justifyContent: 'space-between',
     flexDirection: 'row',
-    alignItems: 'center',
-    padding:10,
-    borderRadius: 20,
+    justifyContent:'flex-end',
+    marginTop: 10,
   },
   lowerText: {
     color: '#ccc',
@@ -340,12 +298,48 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   profilePicture: {
-    width: 40, 
-    height: 40, 
-    borderRadius: 20, 
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     borderColor: '#5B4E75',
     borderWidth: 3,
     marginRight: 5,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: '#1A1A1D',
+    borderRadius: 20,
+    borderColor: 'white',
+    marginHorizontal: 10,
+  },
+  input: {
+    flex: 1,
+    padding: 15,
+    color: '#fff',
+    backgroundColor: '#333',
+    borderRadius: 18,
+    fontSize: 16,
+    marginRight: 10,
+  },
+  commentButton: {
+    backgroundColor: '#5B4E75',
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  commentButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  loadingText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
 

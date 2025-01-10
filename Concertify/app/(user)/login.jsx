@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { LinearGradient } from "expo-linear-gradient";
-import { Text, TextInput, View, StyleSheet, ImageBackground, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { Text,Alert, TextInput, View, StyleSheet, ImageBackground, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { images } from "../../constants";
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { FIREBASE_AUTH, FIRESTORE_DB} from '../../services/firebaseConfig'
@@ -29,7 +29,7 @@ const LogIn = () => {
         const user = userCredential.user;
         router.replace('/home');
       }catch (error) {
-        console.error("Error signing in: ", error);
+        Alert.alert('Error signing in', error.message);
       }finally{
         setLoading(false)
       }
