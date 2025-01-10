@@ -31,6 +31,7 @@ import {
 } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
 import { images } from '../constants';
+import Post from '../components/Post'
 
 const CommentTab = () => {
   const { concertId, postId, currentUsername } = useLocalSearchParams();
@@ -177,26 +178,13 @@ const CommentTab = () => {
     const isLiked = item.likedBy?.includes(userId);
 
     return (
-      <View style={[styles.postContainer, {marginHorizontal:16}]}>
-        <View style={styles.postMiniContainer}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Image source={{ uri: item.profilePicture }} style={styles.profilePicture} />
-            <Text style={styles.postUser}>{item.username}</Text>
-          </View>
-          <Text style={styles.timestamp}>
-            {new Date(item.timestamp.seconds * 1000).toLocaleString()}
-          </Text>
-        </View>
-        <Text style={styles.postContent}>{item.content}</Text>
-        <View style={styles.likeContainer}>
-          <TouchableOpacity onPress={() => toggleLike(item.id, isLiked, true)} style={{flexDirection:'row', alignItems: 'center'}}>
-            <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={24} color="#5B4E75" />
-            <Text style={styles.lowerText}>
-              {item.likes || 0} {item.likes === 1 ? 'Like' : 'Likes'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <Post
+        item={item}
+        userId={userId}
+        onLikeToggle={(id) => toggleLike(id, isLiked, true)}
+        showCommentButton={false}
+        containerStyle={{ marginHorizontal: 16, marginBottom: 10 }}
+      />
     );
   };
 

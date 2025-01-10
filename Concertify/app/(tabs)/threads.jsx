@@ -8,6 +8,7 @@ import { collection, addDoc, onSnapshot, orderBy, query, doc, getDoc, updateDoc,
 import { images } from '../../constants';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import UserList from '../../components/userList';
+import Post from '../../components/Post';
 
 const ThreadsTab = () => {
   const [post, setPost] = useState('');
@@ -165,51 +166,26 @@ useEffect(() => {
   };
 
   const renderPostItem = ({ item }) => {
-    const isLiked = item.likedBy?.includes(userId);
-
+    const handleCommentNavigate = (post) => {
+      router.push({
+        pathname: '/comments',
+        params: {
+          concertId,
+          postId: post.id,
+          postUsername: post.username,
+          postContent: post.content,
+          currentUsername: username,
+        },
+      });
+    };
+  
     return (
-      <View style={styles.postContainer}>
-        
-        <View style={styles.postMiniContainer}>
-          <View style={{flexDirection: 'row', justifyContent:'flex-start', alignItems: 'center'}}>
-            <Image source={{ uri: String(item.profilePicture) }} style={styles.profilePicture} />
-            <Text style={styles.postUser}>{item.username}</Text>
-          </View>
-          <Text style={styles.timestamp}>{new Date(item.timestamp.seconds * 1000).toLocaleString()}</Text>
-        </View>
-
-        <Text style={styles.postContent}>{item.content}</Text>
-        
-        <View style={styles.likeContainer}>
-
-          <TouchableOpacity
-            onPress={() => handleLikeToggle(item.id, isLiked)}
-            style={{flexDirection:'row', alignItems: 'center'}}
-            >
-            <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={30} color="#5B4E75"/>
-            <Text style={styles.lowerText}>{item.likes} {item.likes === 1 ? 'Like' : 'Likes'}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => router.push({
-              pathname: '/comments',
-              params: {
-                concertId,
-                postId: item.id,
-                postUsername: item.username,
-                postContent: item.content,
-                currentUsername: username
-              }
-            })}
-              // style={styles.commentButton}
-            style={{flexDirection:'row', alignItems: 'center'}}
-            >
-            
-            <MaterialCommunityIcons name='comment-processing'size={30} color="#5B4E75"/>
-            <Text style={styles.lowerText}>Comments</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <Post
+        item={item}
+        userId={userId}
+        onLikeToggle={handleLikeToggle}
+        onCommentNavigate={handleCommentNavigate}
+      />
     );
   };
 
@@ -260,7 +236,7 @@ useEffect(() => {
   );
 };
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
