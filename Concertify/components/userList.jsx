@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Animated,
   FlatList,
@@ -25,9 +25,9 @@ const UserList = ({
 }) => {
   const [selectedUser, setSelectedUser] = useState(null);
 
-  const profileSlideAnim = useRef(new Animated.Value(SHEET_HEIGHT)).current;
+  const translateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
 
-  const pan = useRef(new Animated.Value(0)).current;
+  const isProfileOpen = useRef(false);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -35,14 +35,14 @@ const UserList = ({
         Math.abs(gestureState.dy) > 5,
       onPanResponderMove: (evt, gestureState) => {
         if (gestureState.dy > 0) {
-          pan.setValue(gestureState.dy);
+          translateY.setValue(gestureState.dy);
         }
       },
       onPanResponderRelease: (evt, gestureState) => {
         if (gestureState.dy > 100) {
           closeProfileView();
         } else {
-          Animated.spring(pan, {
+          Animated.spring(translateY, {
             toValue: 0,
             useNativeDriver: true,
           }).start();
@@ -53,25 +53,35 @@ const UserList = ({
 
   const handleUserPress = (user) => {
     setSelectedUser(user);
-    pan.setValue(0);
-    Animated.timing(profileSlideAnim, {
+    isProfileOpen.current = true;
+
+    Animated.timing(translateY, {
       toValue: 0,
       duration: 300,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true, 
+      //easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
     }).start();
   };
 
   const closeProfileView = () => {
-    Animated.timing(profileSlideAnim, {
-      toValue: SHEET_HEIGHT, 
+    isProfileOpen.current = false;
+
+    Animated.timing(translateY, {
+      toValue: SHEET_HEIGHT,
       duration: 300,
-      easing: Easing.out(Easing.ease),
+      easing: Easing.in(Easing.ease),
       useNativeDriver: true,
     }).start(() => {
       setSelectedUser(null);
     });
   };
+
+  useEffect(() => {
+    if (!isVisible) {
+      translateY.setValue(SHEET_HEIGHT);
+      setSelectedUser(null);
+    }
+  }, [isVisible, translateY]);
 
   if (!isVisible) return null;
 
@@ -84,7 +94,11 @@ const UserList = ({
     >
       <View style={styles.modalContainer}>
         {/* Overlay */}
-        <TouchableOpacity style={styles.viewOverlay} activeOpacity={1} onPress={onClose} />
+        <TouchableOpacity
+          style={styles.viewOverlay}
+          activeOpacity={1}
+          onPress={onClose}
+        />
 
         {/* User List */}
         <Animated.View
@@ -126,11 +140,7 @@ const UserList = ({
             style={[
               styles.profileView,
               {
-                transform: [
-                  {
-                    translateY: Animated.add(profileSlideAnim, pan),
-                  },
-                ],
+                transform: [{ translateY: translateY }],
               },
             ]}
           >
@@ -138,7 +148,10 @@ const UserList = ({
               <View style={styles.handleBar} />
             </View>
 
-            <Image source={{ uri: selectedUser.profileImage }} style={styles.profilePictureLarge} />
+            <Image
+              source={{ uri: selectedUser.profileImage }}
+              style={styles.profilePictureLarge}
+            />
             <Text style={styles.profileUserName}>{selectedUser.username}</Text>
             <TouchableOpacity style={styles.dmButton}>
               <Text style={styles.dmButtonText}>DM</Text>
@@ -181,8 +194,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: -5, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
-    elevation: 5, 
-    zIndex: 1, 
+    elevation: 5,
+    zIndex: 1,
   },
   userListTitle: {
     fontSize: 25,
@@ -233,13 +246,13 @@ const styles = StyleSheet.create({
   },
 
   viewOverlay: {
-    position: 'absolute', 
+    position: 'absolute',
     top: 0,
     bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    zIndex: 0, 
+    zIndex: 0,
   },
 
   profileView: {
@@ -258,8 +271,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -5 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
-    elevation: 5, 
-    zIndex: 2, 
+    elevation: 5,
+    zIndex: 2,
   },
 
   handleBarContainer: {
@@ -273,17 +286,6 @@ const styles = StyleSheet.create({
     height: 5,
     borderRadius: 2.5,
     backgroundColor: '#fff',
-  },
-
-  closeProfileView: {
-    position: 'absolute',
-    top: 10,
-    right: 20,
-    padding: 10,
-  },
-  closeProfileText: {
-    color: '#fff',
-    fontSize: 18,
   },
 
   profilePictureLarge: {
