@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Keyboard,
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -36,12 +35,11 @@ import { images } from '../constants';
 const CommentTab = () => {
   const { concertId, postId, currentUsername } = useLocalSearchParams();
 
-  const [postDetails, setPostDetails] = useState(null); // State for post details
+  const [postDetails, setPostDetails] = useState(null);
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
   const userId = FIREBASE_AUTH.currentUser?.uid;
 
-  // Fetch post details in real-time
   useEffect(() => {
     const fetchPostDetails = async () => {
       try {
@@ -51,7 +49,6 @@ const CommentTab = () => {
         if (postSnap.exists()) {
           const postData = postSnap.data();
   
-          // Fetch the user's profile picture
           let profilePicture = null;
           try {
             const usersQuery = query(
@@ -68,7 +65,7 @@ const CommentTab = () => {
   
           setPostDetails({
             ...postData,
-            profilePicture: profilePicture || images.profilepic, // Fallback to default image
+            profilePicture: profilePicture || images.profilepic,
           });
         } else {
           console.error('Post not found');
@@ -107,9 +104,9 @@ const CommentTab = () => {
             }
 
             return {
-              id: postDoc.id,
-              ...postData,
-              profilePicture: profilePicture || images.profilepic, // Default profile picture
+              id: doc.id,
+              ...data,
+              profilePicture: profilePicture || images.profilepic,
             };
             
           })
@@ -325,10 +322,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     backgroundColor: '#1A1A1D',
-    //paddingHorizontal: 15,
     borderRadius: 20,
     borderColor: 'white',
-    marginHorizontal: 16,
+    marginHorizontal: 10,
   },
   input: {
     flex: 1,
