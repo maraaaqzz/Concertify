@@ -7,13 +7,13 @@ import ChatRoomHeader from '../../components/ChatRoomHeader';
 import MessageList from '../../components/MessageList';
 import { FIRESTORE_DB, FIREBASE_AUTH } from '../../services/firebaseConfig'; 
 import { addDoc, collection, onSnapshot, orderBy, query, Timestamp, setDoc, doc } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth'; // Import this for auth state listening
+import { onAuthStateChanged } from 'firebase/auth'; 
 
 export default function ChatRoom() {
   const item = useLocalSearchParams();
   const router = useRouter();
   const [messages, setMessages] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null); // State to hold authenticated user
+  const [currentUser, setCurrentUser] = useState(null); 
   const textRef = useRef('');
   const inputRef = useRef(null);
 

@@ -33,7 +33,6 @@ const Chat = () => {
     }
   };
 
-  // Function to fetch the profile image of the current user
   const fetchProfileImage = async () => {
     try {
       const auth = getAuth(); 

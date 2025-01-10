@@ -18,7 +18,6 @@ const HomeTab = () => {
   const [userConcerts, setUserConcerts] = useState([]);
   const [userId, setUserId] = useState(null);
 
-  // Navigate based on authentication state
   const navigateIfLoggedOut = (route) => {
     onAuthStateChanged(FIREBASE_AUTH, (user) => {
       if (user) {
@@ -29,7 +28,6 @@ const HomeTab = () => {
     });
   };
 
-  // Fetch all concerts from the database
   const fetchConcerts = async () => {
     try {
       const snapshot = await getDocs(collection(FIRESTORE_DB, 'concerts'));
@@ -40,7 +38,6 @@ const HomeTab = () => {
     }
   };
 
-  // Setup listener for user's concerts
   const setupUserConcertsListener = () => {
     if (!userId) return;
 
@@ -68,7 +65,6 @@ const HomeTab = () => {
     return unsubscribe;
   };
 
-  // Fetch username for the authenticated user
   const fetchUsername = async (uid) => {
     try {
       const userDoc = await getDoc(doc(FIRESTORE_DB, 'users', uid));
@@ -82,7 +78,6 @@ const HomeTab = () => {
     }
   };
 
-  // Determine greeting message based on time of day
   const greetingMessage = () => {
     const currentTime = new Date().getHours();
     if (currentTime < 12) return 'Good Morning';
@@ -116,7 +111,6 @@ const HomeTab = () => {
     <LinearGradient colors={['#040306', '#131624']} style={{ flex: 1 }}>
       <SafeAreaView className="flex my-6 px-4 space-y-6">
 
-        {/* Header */}
         <View className="flex justify-between items-start flex-wrap flex-row mb-6">
           <TouchableOpacity onPress={() => navigateIfLoggedOut('./profile')} style={{ marginBottom: 5, marginRight: 5 }}>
             <MaterialCommunityIcons name="account-circle" size={30} color="white" />
@@ -131,7 +125,6 @@ const HomeTab = () => {
         
         <SearchInput/>
 
-        {/* User's Concerts */}
         <View>
           <View style={styles.titleContainer}>
             <Text style={styles.titleText}>Your Concerts</Text>
@@ -151,7 +144,6 @@ const HomeTab = () => {
           )}
         </View>
 
-        {/* Upcoming Concerts */}
         <View>
           <View style={styles.titleContainer}>
             <Text style={styles.titleText}>Upcoming Concerts</Text>

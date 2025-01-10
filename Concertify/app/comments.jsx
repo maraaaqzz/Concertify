@@ -36,7 +36,7 @@ import { images } from '../constants';
 const CommentTab = () => {
   const { concertId, postId, currentUsername } = useLocalSearchParams();
 
-  const [postDetails, setPostDetails] = useState(null);
+  const [postDetails, setPostDetails] = useState(null); // State for post details
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
   const userId = FIREBASE_AUTH.currentUser?.uid;
@@ -81,7 +81,6 @@ const CommentTab = () => {
     fetchPostDetails();
   }, [concertId, postId]);
 
-  // Fetch comments
   useEffect(() => {
     const fetchComments = () => {
       const commentsQuery = query(
@@ -108,9 +107,9 @@ const CommentTab = () => {
             }
 
             return {
-              id: doc.id,
-              ...data,
-              profilePicture: profilePicture || images.profilepic,
+              id: postDoc.id,
+              ...postData,
+              profilePicture: profilePicture || images.profilepic, // Default profile picture
             };
             
           })
