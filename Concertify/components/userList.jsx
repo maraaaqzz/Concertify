@@ -9,6 +9,8 @@ import {
   View,
   Dimensions,
   PanResponder,
+  Easing,
+  Modal,
 } from 'react-native';
 import PropTypes from 'prop-types';
 
@@ -23,7 +25,7 @@ const UserList = ({
 }) => {
   const [selectedUser, setSelectedUser] = useState(null);
 
-  const profileSlideAnim = useRef(new Animated.Value(screenHeight)).current;
+  const profileSlideAnim = useRef(new Animated.Value(SHEET_HEIGHT)).current;
 
   const pan = useRef(new Animated.Value(0)).current;
 
@@ -42,7 +44,7 @@ const UserList = ({
         } else {
           Animated.spring(pan, {
             toValue: 0,
-            useNativeDriver: false,
+            useNativeDriver: true,
           }).start();
         }
       },
@@ -53,17 +55,19 @@ const UserList = ({
     setSelectedUser(user);
     pan.setValue(0);
     Animated.timing(profileSlideAnim, {
-      toValue: screenHeight * 0.60, 
+      toValue: 0,
       duration: 300,
-      useNativeDriver: false,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true, 
     }).start();
   };
 
   const closeProfileView = () => {
     Animated.timing(profileSlideAnim, {
-      toValue: screenHeight, 
+      toValue: SHEET_HEIGHT, 
       duration: 300,
-      useNativeDriver: false,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
     }).start(() => {
       setSelectedUser(null);
     });
@@ -72,65 +76,77 @@ const UserList = ({
   if (!isVisible) return null;
 
   return (
-    <>
-      {/*User List=*/}
-      <Animated.View
-        style={[
-          styles.userListContainer,
-          { transform: [{ translateX: slideAnim }] },
-        ]}
-      >
-        <Text style={styles.userListTitle}>Users</Text>
-        <FlatList
-          data={users}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => handleUserPress(item)}
-              style={styles.userItem}
-            >
-              <Image
-                source={{ uri: item.profileImage }}
-                style={styles.profilePicture}
-              />
-              <Text style={styles.userName}>{item.username}</Text>
-            </TouchableOpacity>
-          )}
-          ListEmptyComponent={
-            <View style={styles.emptyListContainer}>
-              <Text style={styles.emptyListText}>No users available</Text>
-            </View>
-          }
-        />
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Text style={styles.closeButtonText}>Close</Text>
-        </TouchableOpacity>
-      </Animated.View>
+    <Modal
+      transparent
+      visible={isVisible}
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalContainer}>
+        {/* Overlay */}
+        <TouchableOpacity style={styles.viewOverlay} activeOpacity={1} onPress={onClose} />
 
-      {/*Bottom Sheet*/}
-      {selectedUser && (
+        {/* User List */}
         <Animated.View
           style={[
-            styles.profileView,
-            {
-              transform: [
-                { translateY: Animated.add(profileSlideAnim, pan) },
-              ],
-            },
+            styles.userListContainer,
+            { transform: [{ translateX: slideAnim }] },
           ]}
         >
-          <View style={styles.handleBarContainer} {...panResponder.panHandlers}>
-            <View style={styles.handleBar} />
-          </View>
-
-          <Image source={{ uri: selectedUser.profileImage }} style={styles.profilePictureLarge} />
-          <Text style={styles.profileUserName}>{selectedUser.username}</Text>
-          <TouchableOpacity style={styles.dmButton}>
-            <Text style={styles.dmButtonText}>DM</Text>
+          <Text style={styles.userListTitle}>Users</Text>
+          <FlatList
+            data={users}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => handleUserPress(item)}
+                style={styles.userItem}
+              >
+                <Image
+                  source={{ uri: item.profileImage }}
+                  style={styles.profilePicture}
+                />
+                <Text style={styles.userName}>{item.username}</Text>
+              </TouchableOpacity>
+            )}
+            ListEmptyComponent={
+              <View style={styles.emptyListContainer}>
+                <Text style={styles.emptyListText}>No users available</Text>
+              </View>
+            }
+          />
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>Close</Text>
           </TouchableOpacity>
         </Animated.View>
-      )}
-    </>
+
+        {/* Profile View */}
+        {selectedUser && (
+          <Animated.View
+            style={[
+              styles.profileView,
+              {
+                transform: [
+                  {
+                    translateY: Animated.add(profileSlideAnim, pan),
+                  },
+                ],
+              },
+            ]}
+          >
+            <View style={styles.handleBarContainer} {...panResponder.panHandlers}>
+              <View style={styles.handleBar} />
+            </View>
+
+            <Image source={{ uri: selectedUser.profileImage }} style={styles.profilePictureLarge} />
+            <Text style={styles.profileUserName}>{selectedUser.username}</Text>
+            <TouchableOpacity style={styles.dmButton}>
+              <Text style={styles.dmButtonText}>DM</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+      </View>
+    </Modal>
   );
 };
 
@@ -148,6 +164,9 @@ UserList.propTypes = {
 };
 
 const styles = StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+  },
   userListContainer: {
     position: 'absolute',
     top: 0,
@@ -162,6 +181,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: -5, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
+    elevation: 5, 
+    zIndex: 1, 
   },
   userListTitle: {
     fontSize: 25,
@@ -211,10 +232,20 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 
+  viewOverlay: {
+    position: 'absolute', 
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 0, 
+  },
 
   profileView: {
     position: 'absolute',
     left: 0,
+    bottom: 0,
     width: '100%',
     height: SHEET_HEIGHT,
     backgroundColor: '#1A1A1D',
@@ -227,6 +258,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -5 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
+    elevation: 5, 
+    zIndex: 2, 
   },
 
   handleBarContainer: {
@@ -269,7 +302,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   dmButton: {
-    flexDirection: 'row', 
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#5B4E75',
     paddingVertical: 10,
@@ -283,7 +316,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   dmIcon: {
-    marginRight: 10, 
+    marginRight: 10,
   },
   dmButtonText: {
     color: '#fff',

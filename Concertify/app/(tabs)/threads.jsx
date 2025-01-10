@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { router, useGlobalSearchParams } from 'expo-router';
-import { Dimensions, Animated, Text, FlatList, TextInput, StyleSheet, View, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, Image } from 'react-native';
+import { Dimensions, Animated, Text, FlatList, TextInput, StyleSheet, View, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, Image, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';
@@ -144,18 +144,18 @@ useEffect(() => {
   const toggleUserList = () => {
     try {
       if (isUserListVisible) {
-        // Slide out
         Animated.timing(slideAnim, {
           toValue: Dimensions.get('window').width,
           duration: 300,
+          easing: Easing.out(Easing.ease),
           useNativeDriver: false,
         }).start(() => setUserListVisible(false));
       } else {
         setUserListVisible(true);
-        // Slide in
         Animated.timing(slideAnim, {
           toValue: 0,
           duration: 300,
+          easing: Easing.out(Easing.ease),
           useNativeDriver: false,
         }).start();
       }
