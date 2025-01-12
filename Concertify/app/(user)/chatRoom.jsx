@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
+import { View, StyleSheet, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons'; 
 import ChatRoomHeader from '../../components/ChatRoomHeader';
@@ -11,7 +11,6 @@ import { onAuthStateChanged } from 'firebase/auth';
 
 export default function ChatRoom() {
   const item = useLocalSearchParams();
-  const router = useRouter();
   const [messages, setMessages] = useState([]);
   const [currentUser, setCurrentUser] = useState(null); 
   const textRef = useRef('');
