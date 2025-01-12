@@ -11,14 +11,32 @@ import { collection, doc, getDoc, getDocs, onSnapshot } from 'firebase/firestore
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/firebaseConfig';
 import SearchInput from '../components/SearchInput'
 import { useGlobalContext } from './GlobalContext'
+import FloatingButton from '../components/EmergencyButton';
 
 const HomeTab = () => {
-  const { state, updateUser, updateAuth } = useGlobalContext();
+  const { state, updateUser, updateAuth, updateConcert } = useGlobalContext();
   const userId = FIREBASE_AUTH.currentUser?.uid;
   console.log("state: ", state);
 
   const [concerts, setConcerts] = useState([]);
   const [userConcerts, setUserConcerts] = useState([]);
+
+  const calculateEndTime = (startDate, duration) => {
+    const start = startDate.toDate();
+    const endTime = new Date(start.getTime() + duration* 60 * 60000);
+    return endTime;
+  }
+
+  const checkActiveConcert = () => {
+    const now = new Date();
+    const ongoingConcert = userConcerts.find(concert => {
+      const startTime = concert.date.toDate();
+      const endTime = calculateEndTime(concert.date, concert.duration);
+      return now >= startTime && now <= endTime;
+    });
+  
+    updateConcert(ongoingConcert || null);
+  };
 
   const navigateIfLoggedOut = (route) => {
     if(state.isAuth){
@@ -96,19 +114,21 @@ const HomeTab = () => {
       if (user) {
         updateAuth(true);
         fetchUsername(userId);
-        setupUserConcertsListener();
+        const unsubscribeUserConcerts = setupUserConcertsListener();
+        return () => unsubscribeUserConcerts();
       } else {
         updateAuth(false);
         setUserConcerts([]);
       }
     });
-
-    return unsubscribeAuth;
+  
+    return () => unsubscribeAuth(); // Cleanup
   }, [userId]);
 
   useEffect(() => {
     fetchConcerts();
-  }, []);
+    checkActiveConcert();
+  }, [userConcerts]);
 
   return (
     <LinearGradient colors={['#040306', '#131624']} style={{ flex: 1 }}>
@@ -153,7 +173,7 @@ const HomeTab = () => {
           </View>
           <SectionContainer data={concerts} />
         </View>
-
+        
       </SafeAreaView>
     </LinearGradient>
   );

@@ -108,7 +108,6 @@ const SongBubble = () => {
     const initializeToken = async () => {
       const token = await getAccessToken();
       if (!token) {
-        // trigger login if no valid token is found
         setAccessToken(null);
         return;
       }

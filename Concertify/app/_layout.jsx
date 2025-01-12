@@ -1,8 +1,11 @@
 import React, { useContext, useEffect } from 'react'
+import { View } from 'react-native';
 import { useFonts } from "expo-font";
 import { Stack, SplashScreen } from 'expo-router'
 import "../global.css";
-import GlobalProvider, { GlobalContext, useGlobalContext } from './GlobalContext'
+import GlobalProvider from './GlobalContext'
+import FloatingButton from '../components/EmergencyButton'
+import EmergencyTab from '../components/EmergencyTab'
 
 SplashScreen.preventAutoHideAsync();
 
@@ -32,6 +35,7 @@ const RootLayout = () => {
 
   return (
     <GlobalProvider>
+      <View style={{ flex: 1 }}>
       <Stack>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -40,9 +44,13 @@ const RootLayout = () => {
         <Stack.Screen name="home" options={{ headerShown: false }} />
         <Stack.Screen name="search/[query]" options={{ headerShown: false }} />
       </Stack>
+      <FloatingButton/>
+      <EmergencyTab/>
+      </View>
     </GlobalProvider>
   
   )
 }
 
 export default RootLayout
+
