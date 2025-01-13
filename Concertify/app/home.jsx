@@ -10,22 +10,40 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, onSnapshot } from 'firebase/firestore';
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/firebaseConfig';
 import SearchInput from '../components/SearchInput'
+import { useGlobalContext } from './GlobalContext'
+import FloatingButton from '../components/EmergencyButton';
 
 const HomeTab = () => {
-  const [name, setName] = useState('');
+  const { state, updateUser, updateAuth, updateConcert } = useGlobalContext();
+  const userId = FIREBASE_AUTH.currentUser?.uid;
+  console.log("state: ", state);
+
   const [concerts, setConcerts] = useState([]);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userConcerts, setUserConcerts] = useState([]);
-  const [userId, setUserId] = useState(null);
+
+  const calculateEndTime = (startDate, duration) => {
+    const start = startDate.toDate();
+    const endTime = new Date(start.getTime() + duration* 60 * 60000);
+    return endTime;
+  }
+
+  const checkActiveConcert = () => {
+    const now = new Date();
+    const ongoingConcert = userConcerts.find(concert => {
+      const startTime = concert.date.toDate();
+      const endTime = calculateEndTime(concert.date, concert.duration);
+      return now >= startTime && now <= endTime;
+    });
+  
+    updateConcert(ongoingConcert || null);
+  };
 
   const navigateIfLoggedOut = (route) => {
-    onAuthStateChanged(FIREBASE_AUTH, (user) => {
-      if (user) {
-        router.push(route);
-      } else {
-        router.replace('./login');
-      }
-    });
+    if(state.isAuth){
+      router.push(route);
+    } else {
+      router.replace('./login');
+    }
   };
 
   const fetchConcerts = async () => {
@@ -34,6 +52,7 @@ const HomeTab = () => {
       const concertsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setConcerts(concertsData);
     } catch (error) {
+      
       console.error('Error fetching concerts: ', error);
     }
   };
@@ -69,7 +88,12 @@ const HomeTab = () => {
     try {
       const userDoc = await getDoc(doc(FIRESTORE_DB, 'users', uid));
       if (userDoc.exists()) {
-        setName(userDoc.data().name);
+        updateUser({
+          uid: uid,
+          name: userDoc.data().name,
+          username: userDoc.data().username,
+        })
+        console.log("user found");
       } else {
         console.log('No such user!');
       }
@@ -88,24 +112,23 @@ const HomeTab = () => {
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(FIREBASE_AUTH, (user) => {
       if (user) {
-        setIsAuthenticated(true);
-        setUserId(user.uid);
-        fetchUsername(user.uid);
-        setupUserConcertsListener();
+        updateAuth(true);
+        fetchUsername(userId);
+        const unsubscribeUserConcerts = setupUserConcertsListener();
+        return () => unsubscribeUserConcerts();
       } else {
-        setIsAuthenticated(false);
-        setName('');
+        updateAuth(false);
         setUserConcerts([]);
-        setUserId(null);
       }
     });
-
-    return unsubscribeAuth;
+  
+    return () => unsubscribeAuth(); // Cleanup
   }, [userId]);
 
   useEffect(() => {
     fetchConcerts();
-  }, []);
+    checkActiveConcert();
+  }, [userConcerts]);
 
   return (
     <LinearGradient colors={['#040306', '#131624']} style={{ flex: 1 }}>
@@ -116,7 +139,7 @@ const HomeTab = () => {
             <MaterialCommunityIcons name="account-circle" size={30} color="white" />
           </TouchableOpacity>
           <Text className="text-2xl font-bold text-white" style={{ marginTop: 3, marginHorizontal: 5 }}>
-            {greetingMessage()} {isAuthenticated && `, ${name}`}
+            {greetingMessage()} {state.isAuth && state.user?.name ? `, ${state.user.name}` : ''}
           </Text>
           <TouchableOpacity onPress={() => navigateIfLoggedOut('./chat')}>
             <Ionicons name="chatbubble-ellipses" size={28} color="white" />
@@ -129,7 +152,7 @@ const HomeTab = () => {
           <View style={styles.titleContainer}>
             <Text style={styles.titleText}>Your Concerts</Text>
           </View>
-          {isAuthenticated ? (
+          {state.isAuth ? (
             userConcerts.length > 0 ? (
               <SectionContainer data={userConcerts} />
             ) : (
@@ -150,7 +173,7 @@ const HomeTab = () => {
           </View>
           <SectionContainer data={concerts} />
         </View>
-
+        
       </SafeAreaView>
     </LinearGradient>
   );

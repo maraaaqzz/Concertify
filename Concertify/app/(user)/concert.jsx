@@ -81,9 +81,6 @@ const Concert = () => {
               style={styles.overlay}>
               <View style={styles.overlayContent}>
                 <Text style={styles.name}>{concertDetails.name}</Text>
-               {/* <View style={styles.dateBadge}>
-                   <Text style={styles.dateText}>{concertDetails.date || 'Date not available'}</Text> 
-                </View> */}
               </View>
             </LinearGradient>
           </View>

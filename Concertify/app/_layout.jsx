@@ -1,34 +1,21 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React, { useContext, useEffect } from 'react'
+import { View } from 'react-native';
 import { useFonts } from "expo-font";
-import { useEffect } from "react";
 import { Stack, SplashScreen } from 'expo-router'
-//import GlobalProvider from "../context/GlobalProvider"
 import "../global.css";
+import GlobalProvider from './GlobalContext'
+import FloatingButton from '../components/EmergencyButton'
+import EmergencyTab from '../components/EmergencyTab'
 
 SplashScreen.preventAutoHideAsync();
 
-const styles = StyleSheet.create({
-  headerTitle: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-});
-
-const commonHeaderOptions = {
-  headerShown: true,
-  headerTransparent: true,
-  headerTitleAlign: 'left',
-  headerTitleStyle: styles.headerTitle,
-  headerTintColor: '#FFFFFF', 
-};
 
 const RootLayout = () => {
   const [fontsLoaded, error] = useFonts({
     "Montserrat-Italic-VariableFont": require("../assets/fonts/Montserrat-Italic-VariableFont_wght.ttf"),
     "Montserrat-VariableFont": require("../assets/fonts/Montserrat-VariableFont_wght.ttf")
   })
+
 
   useEffect(() => {
     if (error) throw error;
@@ -47,32 +34,23 @@ const RootLayout = () => {
   }
 
   return (
-
-    <Stack>
-      <Stack.Screen 
-        name="index" 
-        options={{headerShown: false}} />
-      <Stack.Screen 
-        name="(tabs)" 
-        options={{ headerShown: false }} 
-      />
-      <Stack.Screen 
-        name="comments" 
-        options={{ headerShown: false }} 
-      />
-      <Stack.Screen 
-        name="(user)" 
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen 
-       name="home"
-       options={{ headerShown: false }}
-      />
-       <Stack.Screen name="search/[query]" options={{ headerShown: false }} />
-      
-    </Stack>
+    <GlobalProvider>
+      <View style={{ flex: 1 }}>
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="comments" options={{ headerShown: false }} />
+        <Stack.Screen name="(user)" options={{ headerShown: false }} />
+        <Stack.Screen name="home" options={{ headerShown: false }} />
+        <Stack.Screen name="search/[query]" options={{ headerShown: false }} />
+      </Stack>
+      <FloatingButton/>
+      <EmergencyTab/>
+      </View>
+    </GlobalProvider>
   
   )
 }
 
 export default RootLayout
+
