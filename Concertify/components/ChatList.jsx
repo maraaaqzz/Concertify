@@ -1,28 +1,60 @@
-import { View, Text , StyleSheet, FlatList} from 'react-native'
-import React from 'react'
+import { useState, useEffect } from 'react';
+import { FlatList, View, Text, StyleSheet } from 'react-native';
 import ChatItem from './ChatItem';
-import { useRouter } from 'expo-router';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
-export default function ChatList({users}) {
-    const router = useRouter()
+export default function ChatList({ loggedInUserId }) {
+  const [rooms, setRooms] = useState([]);
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      const roomsQuery = query(
+        collection(db, 'rooms'),
+        where('participants', 'array-contains', loggedInUserId)
+      );
+
+      const querySnapshot = await getDocs(roomsQuery);
+
+      const filteredRooms = [];
+      for (const roomDoc of querySnapshot.docs) {
+        const roomData = roomDoc.data();
+        const messagesSnapshot = await getDocs(collection(roomDoc.ref, 'messages'));
+        if (!messagesSnapshot.empty) {
+          filteredRooms.push({ ...roomData, roomId: roomDoc.id });
+        }
+      }
+
+      setRooms(filteredRooms);
+    };
+
+    fetchRooms();
+  }, [loggedInUserId]);
+
+  if (rooms.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No chats yet. Start a new conversation!</Text>
+      </View>
+    );
+  }
+
   return (
-    <View className="flex-1">
-      <FlatList
-      data={users}
-      contentContainerStyle={{flex: 1, paddingVertical: 25}}
-      keyExtractor={item=> Math.random()}
-      showsVerticalScrollIndicator={false}
-      renderItem={({item,index})=><ChatItem 
-      noBorder={index+1 == users.length} 
-      router={router} 
-      item={item}
-       index={index}/>}
-      />
-    </View>
-  )
+    <FlatList
+      data={rooms}
+      keyExtractor={(item) => item.roomId}
+      renderItem={({ item }) => <ChatItem item={item} />}
+    />
+  );
 }
+
 const styles = StyleSheet.create({
-    text: {
-      color: 'white', 
-    },
-  });
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: 'gray',
+    fontSize: 16,
+  },
+});

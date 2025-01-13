@@ -14,6 +14,33 @@ import PropTypes from 'prop-types';
 const screenHeight = Dimensions.get('window').height;
 const SHEET_HEIGHT = screenHeight * 0.45; 
 
+const handleMessage = async (selectedUser) => {
+  const loggedInUserId = 'currentUserId'; // Replace with actual user ID
+  const participantIds = [loggedInUserId, selectedUser.id].sort();
+
+  // Check if the room already exists
+  const roomsQuery = query(
+    collection(db, 'rooms'),
+    where('participants', '==', participantIds)
+  );
+  const querySnapshot = await getDocs(roomsQuery);
+
+  if (!querySnapshot.empty) {
+    // Room exists; redirect to the chat room
+    const existingRoom = querySnapshot.docs[0];
+    router.push({ pathname: '/chatRoom', params: { roomId: existingRoom.id } });
+  } else {
+    // Create a new room
+    const newRoomRef = await addDoc(collection(db, 'rooms'), {
+      participants: participantIds,
+      createdAt: serverTimestamp(),
+    });
+
+    // Redirect to the new chat room
+    router.push({ pathname: '/chatRoom', params: { roomId: newRoomRef.id } });
+  }
+};
+
 const ProfileView = ({
   selectedUser,
   mutualConcertsCount,
