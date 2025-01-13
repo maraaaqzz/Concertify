@@ -43,6 +43,8 @@ const RootLayout = () => {
         <Stack.Screen name="(user)" options={{ headerShown: false }} />
         <Stack.Screen name="home" options={{ headerShown: false }} />
         <Stack.Screen name="search/[query]" options={{ headerShown: false }} />
+        <Stack.Screen name="categoryConcerts" options={{ headerShown: false }} />
+        <Stack.Screen name="genreConcerts" options={{ headerShown: false }} />
       </Stack>
       <FloatingButton/>
       <EmergencyTab/>
