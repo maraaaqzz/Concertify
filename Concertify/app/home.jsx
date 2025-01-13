@@ -16,7 +16,7 @@ import FloatingButton from '../components/EmergencyButton';
 const HomeTab = () => {
   const { state, updateUser, updateAuth, updateConcert } = useGlobalContext();
   const userId = FIREBASE_AUTH.currentUser?.uid;
-  console.log("state: ", state);
+  
 
   const [concerts, setConcerts] = useState([]);
   const [userConcerts, setUserConcerts] = useState([]);
@@ -36,6 +36,7 @@ const HomeTab = () => {
     });
   
     updateConcert(ongoingConcert || null);
+    console.log("state: ", state);
   };
 
   const navigateIfLoggedOut = (route) => {
@@ -57,7 +58,7 @@ const HomeTab = () => {
     }
   };
 
-  const setupUserConcertsListener = () => {
+  const setupUserConcertsListener = async () => {
     if (!userId) return;
 
     const userDocRef = doc(FIRESTORE_DB, 'users', userId);
@@ -122,7 +123,7 @@ const HomeTab = () => {
       }
     });
   
-    return () => unsubscribeAuth(); // Cleanup
+    return () => unsubscribeAuth();
   }, [userId]);
 
   useEffect(() => {

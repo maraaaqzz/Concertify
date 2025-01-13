@@ -239,7 +239,46 @@ const SongBubble = () => {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>SongBubble</Text>
+          </View>
+          {accessToken ? (
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Search for a song..."
+                value={searchQuery}
+                onChangeText={(text) => {
+                  setSearchQuery(text);
+                  setPostedSong(false);
+                  searchSpotify(text);
+                }}
+              />
+            </View>
+          ) : (
+            <TouchableOpacity style={styles.button} onPress={() => promptAsync()} disabled={!request}>
+              <Text style={styles.buttonText}>Login with Spotify to post a song</Text>
+            </TouchableOpacity>
+          )}
+          {!postedSong && searchQuery ? (
+            <FlatList
+              data={searchResults}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.resultItem}
+                  onPress={() => handlePostSong(item)}
+                >
+                  <Image source={{ uri: item.album.images[0].url }} style={styles.resultAlbumArt} />
+                  <Text style={styles.resultSongArtist}>
+                    {item.name} - {item.artists[0].name}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          ) : null}
+
           <FlatList
             data={fetchedSongs}
             keyExtractor={(item) => item.id}
@@ -262,42 +301,7 @@ const SongBubble = () => {
             )}
           />
 
-          {!postedSong && searchQuery ? (
-            <FlatList
-              data={searchResults}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.resultItem}
-                  onPress={() => handlePostSong(item)}
-                >
-                  <Image source={{ uri: item.album.images[0].url }} style={styles.resultAlbumArt} />
-                  <Text style={styles.resultSongArtist}>
-                    {item.name} - {item.artists[0].name}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            />
-          ) : null}
-
-          {accessToken ? (
-            <View style={styles.searchContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="Search for a song..."
-                value={searchQuery}
-                onChangeText={(text) => {
-                  setSearchQuery(text);
-                  setPostedSong(false);
-                  searchSpotify(text);
-                }}
-              />
-            </View>
-          ) : (
-            <TouchableOpacity style={styles.button} onPress={() => promptAsync()} disabled={!request}>
-              <Text style={styles.buttonText}>Login with Spotify to post a song</Text>
-            </TouchableOpacity>
-          )}
+          
         </SafeAreaView>
       </KeyboardAvoidingView>
     </LinearGradient>
@@ -308,6 +312,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+  },
+  headerTitle: {
+    color: 'white',
+    fontSize: 30,
+    fontWeight: 'bold',
   },
   button: {
     backgroundColor: '#1DB954',

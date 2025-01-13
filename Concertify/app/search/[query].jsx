@@ -14,7 +14,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { FIRESTORE_DB } from '../../services/firebaseConfig.jsx';
 import { router } from 'expo-router';
 import SearchInput from '../../components/SearchInput';
-import Fuse from 'fuse';
+import Fuse from 'fuse.js';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const Search = () => {

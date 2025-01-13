@@ -9,6 +9,7 @@ import eyeHide from "../assets/icons/eye-hide.png";
 import eye from "../assets/icons/eye.png";
 import chat from "../assets/icons/chat.png";
 import songBubble from "../assets/icons/bubble.png";
+import emergency from "../assets/icons/emergency.png"
 
 export default {
   home,
@@ -21,5 +22,6 @@ export default {
   eyeHide,
   eye,
   chat,
-  songBubble
+  songBubble,
+  emergency
 };
