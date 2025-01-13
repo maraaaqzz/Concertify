@@ -10,17 +10,19 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
-import { collection, getDocs } from 'firebase/firestore';
-import { FIRESTORE_DB } from '../../services/firebaseConfig.jsx';
-import { router } from 'expo-router';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';  // Adjust path if needed
+import { useRouter } from 'expo-router'; 
 import SearchInput from '../../components/SearchInput';
 import Fuse from 'fuse.js';
 import { LinearGradient } from 'expo-linear-gradient';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const Search = () => {
   const { query } = useLocalSearchParams();
   const [concerts, setConcerts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   const fetchFilteredConcerts = async () => {
     try {
@@ -50,18 +52,42 @@ const Search = () => {
     if (query) fetchFilteredConcerts();
   }, [query]);
 
+  const handleNavigation = async (concertId) => {
+    onAuthStateChanged(FIREBASE_AUTH, async (user) => {
+      if (user) {
+        const userDocRef = doc(FIRESTORE_DB, 'users', user.uid);
+        try {
+          const userSnap = await getDoc(userDocRef);
+          if (userSnap.exists()) {
+            const userConcerts = userSnap.data()?.concerts || [];
+            if (userConcerts.includes(concertId)) {
+              router.push({
+                pathname: '/concertPage',
+                params: { concertId },
+              });
+            } else {
+              router.push({
+                pathname: '/concert',
+                params: { concertId },
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error checking check-in status:', error);
+        }
+      } else {
+        router.replace('/login');
+      }
+    });
+  };
+
   const RenderConcertItem = ({ item }) => (
     <TouchableOpacity
       style={styles.concertCard}
-      onPress={() =>
-        router.push({
-          pathname: '/concert',
-          params: { concertId: item.id },
-        })
-      }
+      onPress={() => handleNavigation(item.id)}
     >
       <Image
-        source={{ uri: item.photoUrl || 'fallback_image_url' }}
+        source={{ uri: item.photoUrl }}
         style={styles.concertImage}
         resizeMode="cover"
       />
@@ -73,10 +99,7 @@ const Search = () => {
   );
 
   return (
-    <LinearGradient
-      colors={['#131324', '#252950', '#040306']}
-      style={styles.gradient}
-    >
+    <LinearGradient colors={['#131324', '#252950', '#040306']} style={styles.gradient}>
       <SafeAreaView style={styles.container}>
         <Text style={styles.headerText}>Search results for</Text>
         <Text style={styles.queryText}>&quot;{query}&quot;</Text>
