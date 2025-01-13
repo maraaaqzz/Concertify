@@ -40,10 +40,21 @@ export default function ChatList({ loggedInUserId }) {
 
   return (
     <FlatList
-      data={rooms}
-      keyExtractor={(item) => item.roomId}
-      renderItem={({ item }) => <ChatItem item={item} />}
-    />
+  data={rooms}
+  keyExtractor={(item) => item.roomId}
+  renderItem={({ item }) => (
+    <TouchableOpacity
+      onPress={() => {
+        router.push({
+          pathname: '/chatRoom',
+          params: { roomId: item.roomId },
+        });
+      }}
+    >
+      <ChatItem item={item} />
+    </TouchableOpacity>
+  )}
+/>
   );
 }
 

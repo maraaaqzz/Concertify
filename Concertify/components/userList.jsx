@@ -15,6 +15,9 @@ import {
 import AntDesign from '@expo/vector-icons/AntDesign';
 import PropTypes from 'prop-types';
 import ProfileView from './ProfileView'; 
+import { useGlobalContext } from '../app/GlobalContext'; // Import the global context
+import { query, collection, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useRouter } from 'next/router'; // Adjust according to your routing library
 
 const screenHeight = Dimensions.get('window').height;
 const SHEET_HEIGHT = screenHeight * 0.45; 
@@ -34,10 +37,37 @@ const UserList = ({
 
   const internalSlideAnim = useRef(slideAnim || new Animated.Value(Dimensions.get('window').width)).current;
 
-  const handleMessage = useCallback((user) => {
-    // Implement your message handling logic here
-    console.log(`Messaging user: ${user.username}`);
-  }, []);
+  // Get the global context (state) here
+  const { state } = useGlobalContext(); // This gives access to loggedInUser info from context
+
+  const router = useRouter(); // Assuming you're using Next.js for routing
+
+  const handleMessage = async (selectedUser) => {
+    const loggedInUserId = state.user.uid; // Access logged-in user's UID from context
+    const participantIds = [loggedInUserId, selectedUser.id].sort();
+  
+    // Check if the room already exists
+    const roomsQuery = query(
+      collection(db, 'rooms'),
+      where('participants', '==', participantIds)
+    );
+    const querySnapshot = await getDocs(roomsQuery);
+  
+    if (!querySnapshot.empty) {
+      // Room exists; redirect to the chat room
+      const existingRoom = querySnapshot.docs[0];
+      router.push({ pathname: '/chatRoom', params: { roomId: existingRoom.id } });
+    } else {
+      // Create a new room
+      const newRoomRef = await addDoc(collection(db, 'rooms'), {
+        participants: participantIds,
+        createdAt: serverTimestamp(),
+      });
+  
+      // Redirect to the new chat room
+      router.push({ pathname: '/chatRoom', params: { roomId: newRoomRef.id } });
+    }
+  };
 
   // Handle user press to open profile
   const handleUserPress = useCallback(
@@ -164,7 +194,7 @@ const UserList = ({
             mutualConcertsCount={mutualConcertsCount}
             translateY={translateY}
             closeProfileView={closeProfileView}
-            handleMessage={handleMessage}
+            handleMessage={handleMessage} // Pass handleMessage here
           />
         )}
       </View>
