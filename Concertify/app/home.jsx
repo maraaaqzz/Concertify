@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { SectionContainer } from '../components/SectionContainer';
+import { EntityList } from '../components/EntityList';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, onSnapshot } from 'firebase/firestore';
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../services/firebaseConfig';
 import SearchInput from '../components/SearchInput'
 import { useGlobalContext } from './GlobalContext'
-import FloatingButton from '../components/EmergencyButton';
 
 const HomeTab = () => {
   const { state, updateUser, updateAuth, updateConcert } = useGlobalContext();
@@ -20,6 +20,8 @@ const HomeTab = () => {
 
   const [concerts, setConcerts] = useState([]);
   const [userConcerts, setUserConcerts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [genres, setGenres] = useState([]);
 
   const calculateEndTime = (startDate, duration) => {
     const start = startDate.toDate();
@@ -46,14 +48,13 @@ const HomeTab = () => {
     }
   };
 
-  const fetchConcerts = async () => {
+  const fetchData = async (collectionName, setData) => {
     try {
-      const snapshot = await getDocs(collection(FIRESTORE_DB, 'concerts'));
-      const concertsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setConcerts(concertsData);
+      const snapshot = await getDocs(collection(FIRESTORE_DB, collectionName));
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setData(data);
     } catch (error) {
-      
-      console.error('Error fetching concerts: ', error);
+      console.error(`Error fetching ${collectionName}: `, error);
     }
   };
 
@@ -126,54 +127,71 @@ const HomeTab = () => {
   }, [userId]);
 
   useEffect(() => {
-    fetchConcerts();
+    fetchData('concerts', setConcerts);
+    fetchData('categories', setCategories);
+    fetchData('genres', setGenres);
     checkActiveConcert();
   }, [userConcerts]);
 
   return (
     <LinearGradient colors={['#040306', '#131624']} style={{ flex: 1 }}>
       <SafeAreaView className="flex my-6 px-4 space-y-6">
-
-        <View className="flex justify-between items-start flex-wrap flex-row mb-6">
-          <TouchableOpacity onPress={() => navigateIfLoggedOut('./profile')} style={{ marginBottom: 5, marginRight: 5 }}>
-            <MaterialCommunityIcons name="account-circle" size={30} color="white" />
-          </TouchableOpacity>
-          <Text className="text-2xl font-bold text-white" style={{ marginTop: 3, marginHorizontal: 5 }}>
-            {greetingMessage()} {state.isAuth && state.user?.name ? `, ${state.user.name}` : ''}
-          </Text>
-          <TouchableOpacity onPress={() => navigateIfLoggedOut('./chat')}>
-            <Ionicons name="chatbubble-ellipses" size={28} color="white" />
-          </TouchableOpacity>
-        </View>
-        
-        <SearchInput/>
-
-        <View>
-          <View style={styles.titleContainer}>
-            <Text style={styles.titleText}>Your Concerts</Text>
+        <ScrollView>
+          <View className="flex justify-between items-start flex-wrap flex-row mb-6">
+            <TouchableOpacity onPress={() => navigateIfLoggedOut('./profile')} style={{ marginBottom: 5, marginRight: 5 }}>
+              <MaterialCommunityIcons name="account-circle" size={30} color="white" />
+            </TouchableOpacity>
+            <Text className="text-2xl font-bold text-white" style={{ marginTop: 3, marginHorizontal: 5 }}>
+              {greetingMessage()} {state.isAuth && state.user?.name ? `, ${state.user.name}` : ''}
+            </Text>
+            <TouchableOpacity onPress={() => navigateIfLoggedOut('./chat')}>
+              <Ionicons name="chatbubble-ellipses" size={28} color="white" />
+            </TouchableOpacity>
           </View>
-          {state.isAuth ? (
-            userConcerts.length > 0 ? (
-              <SectionContainer data={userConcerts} />
+          
+          <SearchInput/>
+
+          <View>
+            <View style={styles.titleContainer}>
+              <Text style={styles.titleText}>Your Concerts</Text>
+            </View>
+            {state.isAuth ? (
+              userConcerts.length > 0 ? (
+                <SectionContainer data={userConcerts} />
+              ) : (
+                <View style={styles.addConcertsMessageContainer}>
+                  <Text style={styles.addConcertMessageText}>Check-in to concerts!</Text>
+                </View>
+              )
             ) : (
               <View style={styles.addConcertsMessageContainer}>
-                <Text style={styles.addConcertMessageText}>Check-in to concerts!</Text>
+                <Text style={styles.addConcertMessageText}>Log-in to see your concerts!</Text>
               </View>
-            )
-          ) : (
-            <View style={styles.addConcertsMessageContainer}>
-              <Text style={styles.addConcertMessageText}>Log-in to see your concerts!</Text>
-            </View>
-          )}
-        </View>
-
-        <View>
-          <View style={styles.titleContainer}>
-            <Text style={styles.titleText}>Upcoming Concerts</Text>
+            )}
           </View>
-          <SectionContainer data={concerts} />
-        </View>
-        
+
+          <ScrollView>
+            <View style={styles.titleContainer}>
+              <Text style={styles.titleText}>Categories</Text>
+            </View>
+            <EntityList entities={categories} type="category"/>
+          </ScrollView>
+
+          <ScrollView>
+            <View style={styles.titleContainer}>
+              <Text style={styles.titleText}>Genres</Text>
+            </View>
+            <EntityList entities={genres} type="genre"/>
+          </ScrollView>
+            
+          <View>
+            <View style={styles.titleContainer}>
+              <Text style={styles.titleText}>Upcoming Concerts</Text>
+            </View>
+            <SectionContainer data={concerts} />
+          </View>
+      
+        </ScrollView>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -197,7 +215,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignSelf: 'flex-start',
     marginHorizontal: 10,
-    marginTop: 10,
+    marginTop: 5,
   },
   titleText: {
     color: 'white',

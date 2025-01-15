@@ -100,15 +100,18 @@ const LogIn = () => {
       <ImageBackground source={images.crowd} style={styles.background}>
         <LinearGradient colors={["transparent", "#040306"]} style={styles.gradientOverlay} />
       </ImageBackground>
+
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.contentContainer}>
         <View style={styles.tabContainer}>
           <TouchableOpacity onPress={() => setIsSignIn(true)} style={[styles.tab, isSignIn && styles.activeTab]}>
             <Text style={[styles.tabText, isSignIn && styles.activeTabText]}>SIGN IN</Text>
           </TouchableOpacity>
+
           <TouchableOpacity onPress={() => setIsSignIn(false)} style={[styles.tab, !isSignIn && styles.activeTab]}>
             <Text style={[styles.tabText, !isSignIn && styles.activeTabText]}>SIGN UP</Text>
           </TouchableOpacity>
         </View>
+        
         <ScrollView>
           <Text style={styles.title}>{isSignIn ? "Login to Concertify!" : "Sign Up for Concertify!"}</Text>
 
