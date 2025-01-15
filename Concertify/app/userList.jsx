@@ -12,12 +12,11 @@ import {
   Easing,
   Modal,
 } from 'react-native';
-import AntDesign from '@expo/vector-icons/AntDesign';
 import PropTypes from 'prop-types';
-import ProfileView from './ProfileView'; 
-import { useGlobalContext } from '../app/GlobalContext'; 
+import ProfileView from '../components/ProfileView'; 
+import { useGlobalContext } from './GlobalContext'; 
 import { FIRESTORE_DB } from '../services/firebaseConfig';
-import { query, collection, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
 import { useRouter } from 'expo-router'; 
 
 const screenHeight = Dimensions.get('window').height;
@@ -42,37 +41,43 @@ const UserList = ({
 
   const router = useRouter();
 
+  const getRoomId = (userId1, userId2) => {
+    return [String(userId1), String(userId2)].sort().join("_");
+  };
+
   const handleMessage = async (selectedUser) => {
+    const loggedInUserId = state.user.uid;
+    const roomId = getRoomId(loggedInUserId, selectedUser.id);
+  
     try {
-      console.log("handleMessage invoked with user:", selectedUser);
+      // Reference the room document
+      const roomRef = doc(FIRESTORE_DB, "rooms", roomId);
   
-      const loggedInUserId = state.user.uid;
-      const participantIds = [loggedInUserId, selectedUser.id].sort();
+      // Check if the room already exists
+      const roomSnapshot = await getDoc(roomRef);
   
-      console.log("Participants for chat:", participantIds);
-  
-      const roomsQuery = query(
-        collection(FIRESTORE_DB, 'rooms'),
-        where('participants', '==', participantIds)
-      );
-      const querySnapshot = await getDocs(roomsQuery);
-  
-      if (!querySnapshot.empty) {
-        const existingRoom = querySnapshot.docs[0];
-        console.log("Room exists. Redirecting to:", existingRoom.id);
-        router.push({ pathname: '/chatRoom', params: { roomId: existingRoom.id } });
-      } else {
-        console.log("No room found. Creating new...");
-        const newRoomRef = await addDoc(collection(FIRESTORE_DB, 'rooms'), {
-          participants: participantIds,
-          createdAt: serverTimestamp(),
+      if (!roomSnapshot.exists()) {
+        // Room doesn't exist, create it
+        console.log("Room does not exist. Creating new room...");
+        await setDoc(roomRef, {
+          roomId,
+          participants: [loggedInUserId, selectedUser.id],
+          createdAt: Timestamp.fromDate(new Date()),
         });
-        console.log("New room created. Redirecting to:", newRoomRef.id);
-        router.push({ pathname: '/chatRoom', params: { roomId: newRoomRef.id } }); //error here FIX
-        console.log("succesfully redirected."); // it's not succesfully redirecting, router.push error
+        console.log("New room created with ID:", roomId);
+      } else {
+        console.log("Room already exists with ID:", roomId);
       }
+      router.push({ pathname: "/chat", 
+          params: { 
+          roomId: String(roomId),
+          username: String(selectedUser.username),
+          profileImage: selectedUser.profileImage ? String(selectedUser.profileImage) : ""
+        } 
+      });
     } catch (error) {
-      console.error("Error in handleMessage:", error);
+      console.error("Error handling message:", error);
+      Alert.alert("Error", "Failed to start the chat. Please try again.");
     }
   };
 

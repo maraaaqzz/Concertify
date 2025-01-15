@@ -8,7 +8,7 @@ import { collection, addDoc, onSnapshot, orderBy, query, doc, getDoc, updateDoc,
 import { images } from '../../constants';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import UserList from '../../components/userList';
+import UserList from '../userList';
 import Post from '../../components/Post';
 
 const ThreadsTab = () => {
