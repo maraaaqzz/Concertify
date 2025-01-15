@@ -32,7 +32,7 @@ Welcome to **Concertify**, the mobile app designed to elevate your concert-going
 
 ---
 
-## 🎤 **Why Choose Concertify?**  
+## 🎤 **Why Concertify?**  
 
 - **Community-Focused:** Concertify helps you connect with people who share your passion for live music.  
 - **Engagement-Driven:** Post comments, start discussions, and keep the conversation going before, during, and after the show.  
