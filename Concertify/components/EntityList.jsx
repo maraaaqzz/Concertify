@@ -2,6 +2,7 @@ import React from "react";
 import { ScrollView, View } from "react-native";
 import EntityCard from "./EntityCard";
 
+// for categories and genres
 export const EntityList = ({ entities = [], type }) => {
   if (!entities || entities.length === 0) {
     return null;

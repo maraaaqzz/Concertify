@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, FlatList, StyleSheet } from "react-native";
 import ConcertCard from "../components/ConcertCard";
 
+// also used for genres
 export const CategorySectionContainer = ({ title, data }) => {
   const renderItem = ({ item }) => (
     <View style={styles.cardContainer}>

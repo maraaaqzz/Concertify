@@ -115,7 +115,6 @@ export default function ChatRoom() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    //padding: 15,
   },
   inputContainer: {
     flexDirection: 'row',

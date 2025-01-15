@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
-import { FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';  // Adjust path if needed
+import { FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';  
 import { useRouter } from 'expo-router'; 
 import SearchInput from '../../components/SearchInput';
 import Fuse from 'fuse.js';

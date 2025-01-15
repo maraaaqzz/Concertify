@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, ScrollView, StyleSheet } from "react-native";
+import { View, ScrollView } from "react-native";
 import { ConcertCard } from "../components/ConcertCard";
 
 export const SectionContainer = ({ title, data }) => {

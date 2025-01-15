@@ -93,7 +93,6 @@ const UserList = ({
       onRequestClose={onClose}
     >
       <View style={styles.modalContainer}>
-        {/* Overlay */}
         <TouchableOpacity
           style={styles.viewOverlay}
           activeOpacity={1}
