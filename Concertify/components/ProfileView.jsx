@@ -19,7 +19,7 @@ const ProfileView = ({
   mutualConcertsCount,
   translateY,
   closeProfileView,
-  handleMessage,  // Receiving handleMessage as a prop
+  handleMessage,
 }) => {
   return (
     <Animated.View
@@ -54,8 +54,7 @@ const ProfileView = ({
           <TouchableOpacity
             style={styles.dmButton}
             onPress={() => {
-              handleMessage(selectedUser);  // Calling the function passed as prop
-              console.log("Send Message button pressed");
+              handleMessage(selectedUser);
             }}
           >
             <AntDesign name="message1" size={24} color="white" />
