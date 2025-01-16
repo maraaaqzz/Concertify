@@ -13,11 +13,7 @@ import {
   Modal,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import ProfileView from '../components/ProfileView'; 
-import { useGlobalContext } from './GlobalContext'; 
-import { FIRESTORE_DB } from '../services/firebaseConfig';
-import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
-import { useRouter } from 'expo-router'; 
+import ProfileView from './ProfileView'; 
 
 const screenHeight = Dimensions.get('window').height;
 const SHEET_HEIGHT = screenHeight * 0.45; 
@@ -36,50 +32,6 @@ const UserList = ({
   const isProfileOpen = useRef(false);
 
   const internalSlideAnim = useRef(slideAnim || new Animated.Value(Dimensions.get('window').width)).current;
-
-  const { state } = useGlobalContext(); 
-
-  const router = useRouter();
-
-  const getRoomId = (userId1, userId2) => {
-    return [String(userId1), String(userId2)].sort().join("_");
-  };
-
-  const handleMessage = async (selectedUser) => {
-    const loggedInUserId = state.user.uid;
-    const roomId = getRoomId(loggedInUserId, selectedUser.id);
-  
-    try {
-      // Reference the room document
-      const roomRef = doc(FIRESTORE_DB, "rooms", roomId);
-  
-      // Check if the room already exists
-      const roomSnapshot = await getDoc(roomRef);
-  
-      if (!roomSnapshot.exists()) {
-        // Room doesn't exist, create it
-        console.log("Room does not exist. Creating new room...");
-        await setDoc(roomRef, {
-          roomId,
-          participants: [loggedInUserId, selectedUser.id],
-          createdAt: Timestamp.fromDate(new Date()),
-        });
-        console.log("New room created with ID:", roomId);
-      } else {
-        console.log("Room already exists with ID:", roomId);
-      }
-      router.push({ pathname: "/chat", 
-          params: { 
-          roomId: String(roomId),
-          username: String(selectedUser.username),
-          profileImage: selectedUser.profileImage ? String(selectedUser.profileImage) : ""
-        } 
-      });
-    } catch (error) {
-      console.error("Error handling message:", error);
-      Alert.alert("Error", "Failed to start the chat. Please try again.");
-    }
-  };
 
   // Handle user press to open profile
   const handleUserPress = useCallback(
@@ -109,6 +61,7 @@ const UserList = ({
   );
 
   const closeProfileView = useCallback(() => {
+    setSelectedUser(null);
     if (isAnimating || !isProfileOpen.current) {
       console.log('No animation to close or already animating.');
       return;
@@ -205,7 +158,6 @@ const UserList = ({
             mutualConcertsCount={mutualConcertsCount}
             translateY={translateY}
             closeProfileView={closeProfileView}
-            handleMessage={handleMessage} // Pass handleMessage here
           />
         )}
       </View>

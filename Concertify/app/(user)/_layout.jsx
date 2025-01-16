@@ -5,15 +5,27 @@ SplashScreen.preventAutoHideAsync();
 
 const RootLayout = () => {
   return (
-    <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="comments" options={{ headerShown: false }} />
-        <Stack.Screen name="(user)" options={{ headerShown: false }} />
-        <Stack.Screen name="home" options={{ headerShown: false }} />
-        <Stack.Screen name="search/[query]" options={{ headerShown: false }} />
-        <Stack.Screen name="userList" options={{ headerShown: false }} />
-      </Stack>
+    <Stack >
+      <Stack.Screen 
+        name="concert" 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="login" 
+        options={{headerShown: false}} />
+      <Stack.Screen 
+        name="profile" 
+        options={{ headerShown: false }} 
+      />
+       <Stack.Screen 
+        name="chat" 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="chatRoom" 
+        options={{ headerShown: false }} 
+      />
+    </Stack>
   )
 }
 

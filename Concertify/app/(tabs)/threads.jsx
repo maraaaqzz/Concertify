@@ -9,6 +9,7 @@ import { images } from '../../constants';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import UserList from '../userList';
+import ProfileView from "../ProfileView";
 import Post from '../../components/Post';
 
 const ThreadsTab = () => {
@@ -22,6 +23,7 @@ const ThreadsTab = () => {
   const [attendingUsers, setAttendingUsers] = useState([]); // for user list
   const [loggedInUserConcerts, setLoggedInUserConcerts] = useState([]); // for mutual concerts
 
+  const closeProfileView = () => setProfileVisible(false);
 
   useEffect(() => {
     const fetchUsername = async () => {
@@ -191,7 +193,7 @@ const ThreadsTab = () => {
   const renderPostItem = ({ item }) => {
     const handleCommentNavigate = (post) => {
       router.push({
-        pathname: '/comments',
+        pathname: '../comments',
         params: {
           concertId,
           postId: post.id,

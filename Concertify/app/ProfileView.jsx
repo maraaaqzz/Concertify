@@ -10,6 +10,10 @@ import {
 } from 'react-native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import PropTypes from 'prop-types';
+import { FIRESTORE_DB } from '../services/firebaseConfig';
+import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
+import { useGlobalContext } from './GlobalContext'; 
+import { useRouter } from 'expo-router'; 
 
 const screenHeight = Dimensions.get('window').height;
 const SHEET_HEIGHT = screenHeight * 0.45; 
@@ -19,8 +23,52 @@ const ProfileView = ({
   mutualConcertsCount,
   translateY,
   closeProfileView,
-  handleMessage,
-}) => {
+}) => { 
+
+  const getRoomId = (userId1, userId2) => {
+    return [String(userId1), String(userId2)].sort().join("_");
+  };
+
+  const { state } = useGlobalContext(); 
+  const router = useRouter();
+
+  const handleMessage = async (selectedUser) => {
+    const loggedInUserId = state.user.uid;
+    const roomId = getRoomId(loggedInUserId, selectedUser.id);
+  
+    try {
+      // Reference the room document
+      const roomRef = doc(FIRESTORE_DB, "rooms", roomId);
+  
+      // Check if the room already exists
+      const roomSnapshot = await getDoc(roomRef);
+  
+      if (!roomSnapshot.exists()) {
+        // Room doesn't exist, create it
+        console.log("Room does not exist. Creating new room...");
+        await setDoc(roomRef, {
+          roomId,
+          participants: [loggedInUserId, selectedUser.id],
+          createdAt: Timestamp.fromDate(new Date()),
+        });
+        console.log("New room created with ID:", roomId);
+      } else {
+        console.log("Room already exists with ID:", roomId);
+      }
+      router.push({ pathname: "/(user)/chatRoom", 
+          params: { 
+          roomId: String(roomId),
+          username: String(selectedUser.username),
+          profileImage: selectedUser.profileImage ? String(selectedUser.profileImage) : ""
+        } 
+      });
+      closeProfileView();
+    } catch (error) {
+      console.error("Error handling message:", error);
+      Alert.alert("Error", "Failed to start the chat. Please try again.");
+    }
+  };  
+
   return (
     <Animated.View
       style={[styles.profileView, { transform: [{ translateY }] }]}
@@ -88,7 +136,6 @@ ProfileView.propTypes = {
   mutualConcertsCount: PropTypes.number.isRequired,
   translateY: PropTypes.object.isRequired,
   closeProfileView: PropTypes.func.isRequired,
-  handleMessage: PropTypes.func.isRequired,
 };
 
 const styles = StyleSheet.create({
