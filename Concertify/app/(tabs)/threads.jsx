@@ -81,7 +81,7 @@ const ThreadsTab = () => {
       try {
         const usersQuery = query(
           collection(FIRESTORE_DB, 'users'),
-          where('concerts', 'array-contains', concertId) 
+          where('concerts', 'array-contains', concertId), 
         );
         const querySnapshot = await getDocs(usersQuery);
         const users = querySnapshot.docs.map(doc => ({
@@ -91,7 +91,7 @@ const ThreadsTab = () => {
           name: doc.data().name,
           concerts: doc.data().concerts,
           createAt: doc.data().createAt
-        }));
+        })).filter(user => user.id !== userId);
         setAttendingUsers(users);
       } catch (error) {
         console.error('Error fetching attending users:', error);
