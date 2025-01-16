@@ -87,7 +87,7 @@ const ThreadsTab = () => {
         const users = querySnapshot.docs.map(doc => ({
           id: doc.id,
           username: doc.data().username,
-          profileImage: doc.data().profileImage || images.profilepic, 
+          profileImage: typeof doc.data().profileImage === 'string' ? doc.data().profileImage : images.profilepic?.uri || '',
           name: doc.data().name,
           concerts: doc.data().concerts,
           createAt: doc.data().createAt

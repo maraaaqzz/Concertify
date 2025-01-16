@@ -41,13 +41,13 @@ const styles = StyleSheet.create({
   profileImage: {
     width: 60,
     height: 60,
-    borderRadius: 30, // Corrected for an even circle
+    borderRadius: 30, 
     borderWidth: 4,
     borderColor: '#5B4E75',
   },
   usernameText: {
-    marginLeft: 10, // Space between the profile picture and the username
+    marginLeft: 10, 
     fontSize: 18,
-    color: 'white', // To ensure visibility on dark backgrounds
+    color: 'white', 
   },
 });
