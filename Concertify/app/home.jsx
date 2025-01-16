@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignSelf: 'flex-start',
     marginHorizontal: 10,
-    marginTop: 5,
+    marginTop: 0,
   },
   titleText: {
     color: 'white',
