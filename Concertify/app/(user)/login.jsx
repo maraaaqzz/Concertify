@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { LinearGradient } from "expo-linear-gradient";
-import { Text, TextInput, View, StyleSheet, ImageBackground, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { Text, TextInput, View, StyleSheet, ImageBackground, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { images } from "../../constants";
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { FIREBASE_AUTH, FIRESTORE_DB} from '../../services/firebaseConfig'
@@ -29,7 +29,11 @@ const LogIn = () => {
         const user = userCredential.user;
         router.replace('/home');
       }catch (error) {
-        console.error("Error signing in: ", error);
+        if (error.code === 'auth/invalid-credential') {
+          Alert.alert('Error', 'Invalid email or password');
+        } else {
+          Alert.alert('Error', 'Something went wrong. Please try again.');
+        }
       }finally{
         setLoading(false)
       }
@@ -61,11 +65,19 @@ const LogIn = () => {
         });
       }catch (e){
           console.error("Error adding document: ", e)
+          Alert.alert('Error', 'Failed to save user data. Please try again.');
       }
       console.log("User created and data added to firebase")
       router.replace('/home');
     }catch(error){
-      console.error("Error signing up", error.message)
+      if (error.code === 'auth/email-already-in-use') {
+        Alert.alert('Error', 'The email is already in use by another account');
+      } else if (error.code === 'auth/weak-password') {
+        Alert.alert('Error', 'Password should be at least 6 characters');
+      } else {
+        Alert.alert('Error', 'Failed to create an account. Please try again.');
+      }
+      
     }finally{
       setLoading(false)
     }

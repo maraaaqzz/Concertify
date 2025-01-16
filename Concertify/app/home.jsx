@@ -115,9 +115,10 @@ const HomeTab = () => {
           <TouchableOpacity onPress={() => navigateIfLoggedOut('./profile')} style={{ marginBottom: 5, marginRight: 5 }}>
             <MaterialCommunityIcons name="account-circle" size={30} color="white" />
           </TouchableOpacity>
-          <Text className="text-2xl font-bold text-white" style={{ marginTop: 3, marginHorizontal: 5 }}>
-            {greetingMessage()} {isAuthenticated && `, ${name}`}
-          </Text>
+          <View style={styles.greetingContainer}>
+  <Text style={styles.greetingText}>{greetingMessage()}</Text>
+  {isAuthenticated && <Text style={styles.nameText}>{name}</Text>}
+</View>
           <TouchableOpacity onPress={() => navigateIfLoggedOut('./chat')}>
             <Ionicons name="chatbubble-ellipses" size={28} color="white" />
           </TouchableOpacity>
@@ -186,6 +187,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#fff',
     fontWeight: 'bold',
+  },
+  greetingContainer: {
+    alignItems: 'flex-start',
+    marginLeft: -100
+  },
+  greetingText: {
+    fontSize: 26, // Larger size for the greeting
+    fontWeight: 'bold', // Bold greeting
+    color: 'white',
+
+  },
+  nameText: {
+    fontSize: 20, // Smaller size for the name
+    fontWeight: 'normal', // Normal weight for the name
+    color: 'white',
+    marginTop: 2
   },
 });
 
