@@ -7,7 +7,9 @@ import { FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';
 import { collection, addDoc, onSnapshot, orderBy, query, doc, getDoc, updateDoc, arrayUnion, arrayRemove, increment, where, getDocs } from 'firebase/firestore';
 import { images } from '../../constants';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import AntDesign from '@expo/vector-icons/AntDesign';
 import UserList from '../../components/userList';
+import ProfileView from '../../components/ProfileView';
 import Post from '../../components/Post';
 
 const ThreadsTab = () => {
@@ -18,7 +20,10 @@ const ThreadsTab = () => {
   const { concertId } = useGlobalSearchParams();
   const [isUserListVisible, setUserListVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(Dimensions.get('window').width)).current;
-  const [attendingUsers, setAttendingUsers] = useState([]);
+  const [attendingUsers, setAttendingUsers] = useState([]); // for user list
+  const [loggedInUserConcerts, setLoggedInUserConcerts] = useState([]); // for mutual concerts
+
+  const closeProfileView = () => setProfileVisible(false);
 
   useEffect(() => {
     const fetchUsername = async () => {
@@ -35,6 +40,23 @@ const ThreadsTab = () => {
     };
     fetchUsername();
   }, [userId]);
+
+  useEffect(() => { // for mutual concerts
+    const fetchLoggedInUserConcerts = async () => {
+      try {
+        if (userId) {
+          const userDoc = await getDoc(doc(FIRESTORE_DB, 'users', userId));
+          if (userDoc.exists()) {
+            setLoggedInUserConcerts(userDoc.data().concerts || []);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching logged-in user concerts:', error);
+      }
+    };
+  
+    fetchLoggedInUserConcerts();
+  }, [userId]);  
 
   const addPost = async (text) => {
     if (!text.trim()) return;
@@ -54,29 +76,32 @@ const ThreadsTab = () => {
     }
   };
 
-useEffect(() => {
-  const fetchAttendingUsers = async () => {
-    try {
-      const usersQuery = query(
-        collection(FIRESTORE_DB, 'users'),
-        where('concerts', 'array-contains', concertId) 
-      );
-      const querySnapshot = await getDocs(usersQuery);
-      const users = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        username: doc.data().username,
-        profileImage: doc.data().profileImage || images.profilepic, 
-      }));
-      setAttendingUsers(users);
-    } catch (error) {
-      console.error('Error fetching attending users:', error);
-    }
-  };
+  useEffect(() => {
+    const fetchAttendingUsers = async () => {
+      try {
+        const usersQuery = query(
+          collection(FIRESTORE_DB, 'users'),
+          where('concerts', 'array-contains', concertId), 
+        );
+        const querySnapshot = await getDocs(usersQuery);
+        const users = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          username: doc.data().username,
+          profileImage: doc.data().profileImage || images.profilepic, 
+          name: doc.data().name,
+          concerts: doc.data().concerts,
+          createAt: doc.data().createAt
+        })).filter(user => user.id !== userId);
+        setAttendingUsers(users);
+      } catch (error) {
+        console.error('Error fetching attending users:', error);
+      }
+    };
 
-  if (concertId) {
-    fetchAttendingUsers();
-  }
-}, [concertId]);
+    if (concertId) {
+      fetchAttendingUsers();
+    }
+  }, [concertId]);
 
   useEffect(() => {
     const fetchPosts = () => {
@@ -160,15 +185,15 @@ useEffect(() => {
           useNativeDriver: false,
         }).start();
       }
-  } catch (error) {
-    console.error('Error toggling like:', error);
-  }
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    }
   };
 
   const renderPostItem = ({ item }) => {
     const handleCommentNavigate = (post) => {
       router.push({
-        pathname: '/comments',
+        pathname: '../comments',
         params: {
           concertId,
           postId: post.id,
@@ -190,48 +215,54 @@ useEffect(() => {
   };
 
   return (
-    
     <LinearGradient colors={['#040306', '#131624']} style={{ flex: 1 }}>
-        <SafeAreaView style={styles.container} edges={['top']}>
-          <View style={styles.header}>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        {/* header */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity onPress={() => router.dismissAll()} style={styles.backButton}>
+              <AntDesign name="left" size={26} color="white" />
+            </TouchableOpacity>
             <Text style={styles.headerTitle}>Threads</Text>
-            <TouchableOpacity onPress={toggleUserList} style={styles.rightCornerButton}>
-              <Ionicons name="people-outline" size={34} color="white" />
-            </TouchableOpacity>
           </View>
+          <TouchableOpacity onPress={toggleUserList} style={styles.rightCornerButton}>
+            <Ionicons name="people-outline" size={34} color="white" />
+          </TouchableOpacity>
+        </View>
 
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="What's on your mind?"
-              placeholderTextColor="#ccc"
-              value={post}
-              onChangeText={setPost}
-            />
-            <TouchableOpacity
-              onPress={() => addPost(post)}
-              style={styles.postButton}
-              disabled={!username || !post.trim()}>
-              <Text style={styles.postButtonText}>Post</Text>
-            </TouchableOpacity>
-          </View>
-
-          <FlatList
-            data={posts}
-            keyExtractor={(item) => item.id}
-            renderItem={renderPostItem}
-            contentContainerStyle={styles.postsList}
-            onScrollBeginDrag={() => Keyboard.dismiss()}
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="What's on your mind?"
+            placeholderTextColor="#ccc"
+            value={post}
+            onChangeText={setPost}
           />
+          <TouchableOpacity
+            onPress={() => addPost(post)}
+            style={styles.postButton}
+            disabled={!username || !post.trim()}>
+            <Text style={styles.postButtonText}>Post</Text>
+          </TouchableOpacity>
+        </View>
+
+        <FlatList
+          data={posts}
+          keyExtractor={(item) => item.id}
+          renderItem={renderPostItem}
+          contentContainerStyle={styles.postsList}
+          onScrollBeginDrag={() => Keyboard.dismiss()}
+        />
 
         <UserList
           isVisible={isUserListVisible}
           slideAnim={slideAnim}
           users={attendingUsers}
           onClose={toggleUserList}
+          loggedInUserConcerts={loggedInUserConcerts}
         />
         
-        </SafeAreaView>
+      </SafeAreaView>
     </LinearGradient>
   );
 };
@@ -244,8 +275,15 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingHorizontal: 10,
+    paddingVertical: 13,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    padding: 5,
   },
   headerTitle: {
     color: 'white',
@@ -303,7 +341,6 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     backgroundColor: '#1A1A1D',
-    //paddingHorizontal: 15,
     borderRadius: 20,
     borderColor: 'white',
     marginHorizontal: 10,

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { StyleSheet, Text, Image, View, ScrollView, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, Image, View, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { FIRESTORE_DB } from '../../services/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
@@ -45,6 +45,7 @@ const ConcertPage = () => {
 
   return (
     <LinearGradient colors={['#040306', '#131624']} style={{ flex: 1 }}>
+      
       <ScrollView style={styles.scrollContent}>
         <SafeAreaView style={styles.container}>
           <View style={styles.imageContainer}>

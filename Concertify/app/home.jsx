@@ -16,7 +16,7 @@ import { useGlobalContext } from './GlobalContext'
 const HomeTab = () => {
   const { state, updateUser, updateAuth, updateConcert } = useGlobalContext();
   const userId = FIREBASE_AUTH.currentUser?.uid;
-  console.log("state: ", state);
+  
 
   const [concerts, setConcerts] = useState([]);
   const [userConcerts, setUserConcerts] = useState([]);
@@ -38,6 +38,7 @@ const HomeTab = () => {
     });
   
     updateConcert(ongoingConcert || null);
+    console.log("state: ", state);
   };
 
   const navigateIfLoggedOut = (route) => {
@@ -58,7 +59,7 @@ const HomeTab = () => {
     }
   };
 
-  const setupUserConcertsListener = () => {
+  const setupUserConcertsListener = async () => {
     if (!userId) return;
 
     const userDocRef = doc(FIRESTORE_DB, 'users', userId);
@@ -123,7 +124,7 @@ const HomeTab = () => {
       }
     });
   
-    return () => unsubscribeAuth(); // Cleanup
+    return () => unsubscribeAuth();
   }, [userId]);
 
   useEffect(() => {
@@ -136,20 +137,21 @@ const HomeTab = () => {
   return (
     <LinearGradient colors={['#040306', '#131624']} style={{ flex: 1 }}>
       <SafeAreaView className="flex my-6 px-4 space-y-6">
-        <ScrollView>
-          <View className="flex justify-between items-start flex-wrap flex-row mb-6">
-            <TouchableOpacity onPress={() => navigateIfLoggedOut('./profile')} style={{ marginBottom: 5, marginRight: 5 }}>
-              <MaterialCommunityIcons name="account-circle" size={30} color="white" />
-            </TouchableOpacity>
-            <Text className="text-2xl font-bold text-white" style={{ marginTop: 3, marginHorizontal: 5 }}>
-              {greetingMessage()} {state.isAuth && state.user?.name ? `, ${state.user.name}` : ''}
-            </Text>
-            <TouchableOpacity onPress={() => navigateIfLoggedOut('./chat')}>
-              <Ionicons name="chatbubble-ellipses" size={28} color="white" />
-            </TouchableOpacity>
+      <ScrollView>
+        <View className="flex justify-between items-start flex-wrap flex-row mb-6">
+          <TouchableOpacity onPress={() => navigateIfLoggedOut('./profile')} style={{ marginBottom: 5, marginRight: 5 }}>
+            <MaterialCommunityIcons name="account-circle" size={30} color="white" />
+          </TouchableOpacity>
+          <View style={styles.greetingContainer}>
+            <Text style={styles.greetingText}>{greetingMessage()}</Text>
+            {state.isAuth && <Text style={styles.nameText}>{state.user?.name}</Text>}
           </View>
-          
-          <SearchInput/>
+          <TouchableOpacity onPress={() => navigateIfLoggedOut('./chat')} style={{ marginBottom: 5, marginRight: 5 }}>
+            <Ionicons name="chatbubble-ellipses" size={30} color="white" />
+          </TouchableOpacity>
+        </View>
+        
+        <SearchInput/>
 
           <View>
             <View style={styles.titleContainer}>
@@ -227,6 +229,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#fff',
     fontWeight: 'bold',
+  },
+  greetingContainer: {
+    alignItems: 'center',
+    //marginLeft: -100
+  },
+  greetingText: {
+    fontSize: 26, // Larger size for the greeting
+    fontWeight: 'bold', // Bold greeting
+    color: 'white',
+
+  },
+  nameText: {
+    fontSize: 20, // Smaller size for the name
+    fontWeight: 'normal', // Normal weight for the name
+    color: 'white',
+    marginTop: 2
   },
 });
 

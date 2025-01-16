@@ -1,38 +1,35 @@
-import { View, StyleSheet, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
-import React, { useState, useEffect, useRef } from 'react';
-import { useLocalSearchParams, router } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons'; 
-import ChatRoomHeader from '../../components/ChatRoomHeader';
-import MessageList from '../../components/MessageList';
-import { FIRESTORE_DB, FIREBASE_AUTH } from '../../services/firebaseConfig'; 
-import { addDoc, collection, onSnapshot, orderBy, query, Timestamp, setDoc, doc } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth'; 
+import {
+  View,
+  StyleSheet,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableOpacity,
+  SafeAreaView,
+  Alert,
+} from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { useLocalSearchParams, router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import ChatRoomHeader from "../../components/ChatRoomHeader";
+import MessageList from "../../components/MessageList";
+import { FIRESTORE_DB } from "../../services/firebaseConfig";
+import { addDoc, collection, onSnapshot, orderBy, query, Timestamp } from "firebase/firestore";
+import { useGlobalContext } from "../app/../GlobalContext";
 
 export default function ChatRoom() {
-  const item = useLocalSearchParams();
+  const { roomId, username, profileImage } = useLocalSearchParams(); // Retrieve `roomId` from params
+  const { state } = useGlobalContext(); // Access global user state
   const [messages, setMessages] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null); 
-  const textRef = useRef('');
+  const textRef = useRef("");
   const inputRef = useRef(null);
 
+  // Fetch messages for the existing room
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(FIREBASE_AUTH, (user) => {
-      if (user) {
-        setCurrentUser({ userId: user.uid });
-      }
-    });
-
-    return () => unsubscribeAuth();
-  }, []);
-
-  useEffect(() => {
-    if (currentUser) {
-      createRoomIfNotExists();
-      const roomId = getRoomId(currentUser.userId, item?.userId);
-      const docRef = doc(FIRESTORE_DB, "rooms", roomId);
-      const messagesRef = collection(docRef, "messages");
-      const q = query(messagesRef, orderBy('createdAt', 'asc'));
+    if (state.user?.uid && roomId) {
+      const messagesRef = collection(FIRESTORE_DB, "rooms", roomId, "messages");
+      const q = query(messagesRef, orderBy("createdAt", "asc"));
 
       const unsub = onSnapshot(q, (snapshot) => {
         const allMessages = snapshot.docs.map((doc) => doc.data());
@@ -41,58 +38,34 @@ export default function ChatRoom() {
 
       return unsub;
     }
-  }, [currentUser]);
-
-  const getRoomId = (userId1, userId2) => {
-    const sortedIds = [String(userId1), String(userId2)].sort();
-    return sortedIds.join('_');
-  };
-
-  const createRoomIfNotExists = async () => {
-    if (!currentUser) return;
-    const roomId = getRoomId(currentUser.userId, item?.userId);
-    try {
-      await setDoc(doc(FIRESTORE_DB, "rooms", roomId), {
-        roomId,
-        createdAt: Timestamp.fromDate(new Date()),
-      }, { merge: true });
-    } catch (error) {
-      console.error("Error creating room:", error);
-    }
-  };
+  }, [state.user?.uid, roomId]);
 
   const handleSendMessage = async () => {
     const message = textRef.current.trim();
     if (!message) return;
 
     try {
-      const roomId = getRoomId(currentUser.userId, item?.userId);
-      const docRef = doc(FIRESTORE_DB, 'rooms', roomId);
-      const messagesRef = collection(docRef, "messages");
+      const messagesRef = collection(FIRESTORE_DB, "rooms", roomId, "messages");
       textRef.current = "";
       inputRef.current?.clear();
 
       await addDoc(messagesRef, {
-        userId: currentUser.userId,
+        userId: state.user.uid,
         text: message,
         createdAt: Timestamp.fromDate(new Date()),
       });
     } catch (err) {
-      Alert.alert('Message Error', err.message);
+      Alert.alert("Message Error", err.message);
     }
   };
 
   return (
-    <LinearGradient colors={['#040306', '#131624']} style={styles.container}>
-      <ChatRoomHeader user={item} router={router} />
-      
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoidingView}
-      >
-        <SafeAreaView style={{flex:1}}>
+    <LinearGradient colors={["#040306", "#131624"]} style={styles.container}>
+      <ChatRoomHeader user={{ username, profileImage }} router={router} />
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardAvoidingView}>
+        <SafeAreaView style={{ flex: 1 }}>
           <View style={{ flex: 1 }}>
-            <MessageList messages={messages} currentUser={currentUser} />
+            <MessageList messages={messages} currentUser={state.user?.uid} />
           </View>
           <View style={styles.inputContainer}>
             <TextInput
@@ -117,9 +90,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1A1A1F',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1A1A1F",
     borderRadius: 25,
     marginHorizontal: 10,
     marginBottom: 10,
@@ -130,14 +103,14 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     padding: 10,
-    color: '#fff',
+    color: "#fff",
   },
   keyboardAvoidingView: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   sendButton: {
-    backgroundColor: '#621e62',
+    backgroundColor: "#621e62",
     padding: 10,
     borderRadius: 25,
     marginLeft: 8,

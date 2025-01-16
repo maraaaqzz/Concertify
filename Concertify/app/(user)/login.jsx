@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { LinearGradient } from "expo-linear-gradient";
-import { Text, Alert, TextInput, View, StyleSheet, ImageBackground, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { Text, TextInput, View, StyleSheet, ImageBackground, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { images } from "../../constants";
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';
@@ -19,35 +19,27 @@ const LogIn = () => {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(true);
-
-  const toggleShowPassword = () => {
-    setShowPassword(!showPassword);
-  };
-
-  const submitSignin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all the fields');
-      return;
-    }
-    setLoading(true);
-    try {
-      const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
-      const user = userCredential.user;
-
-      updateUser({
-        uid: user.uid,
-        email: user.email,
-      });
-      updateAuth({isAuth: true})
-
-      router.replace('/home');
-    } catch (error) {
-      Alert.alert('Error signing in', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  
+  const submitSignin = async() => {
+    if(!email || !password){
+        Alert.alert('Error', 'Please fill in all the fields')
+        return
+      }
+      setLoading(true);
+      try{
+        const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
+        const user = userCredential.user;
+        router.replace('/home');
+      }catch (error) {
+        if (error.code === 'auth/invalid-credential') {
+          Alert.alert('Error', 'Invalid email or password');
+        } else {
+          Alert.alert('Error', 'Something went wrong. Please try again.');
+        }
+      }finally{
+        setLoading(false)
+      }
+  }
 
   const submitSignUp = async () => {
     if (!username || !email || !password) {
@@ -73,8 +65,9 @@ const LogIn = () => {
           spotifyTokenExpiry: '',
           createdAt: new Date(),
         });
-      } catch (e) {
-        console.error("Error adding document: ", e);
+      }catch (e){
+          console.error("Error adding document: ", e)
+          Alert.alert('Error', 'Failed to save user data. Please try again.');
       }
 
       // Update global context
@@ -88,10 +81,17 @@ const LogIn = () => {
 
       console.log("User created and data added to firebase");
       router.replace('/home');
-    } catch (error) {
-      console.error("Error signing up", error.message);
-    } finally {
-      setLoading(false);
+    }catch(error){
+      if (error.code === 'auth/email-already-in-use') {
+        Alert.alert('Error', 'The email is already in use by another account');
+      } else if (error.code === 'auth/weak-password') {
+        Alert.alert('Error', 'Password should be at least 6 characters');
+      } else {
+        Alert.alert('Error', 'Failed to create an account. Please try again.');
+      }
+      
+    }finally{
+      setLoading(false)
     }
   };
 
