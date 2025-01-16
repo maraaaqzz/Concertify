@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import React from 'react';
+import { useGlobalContext } from '../app/GlobalContext';
 
 // Important to note that in the database, the chat's id are composed like so: "selected user's id + _ + current user's (you) id"
 
@@ -8,19 +9,23 @@ export default function MessageItem({ message, currentUser }) {
     ? new Date(message.createdAt.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : 'Invalid Time'; 
 
-  if (String(currentUser?.userId) === String(message?.userId)) {
-    return ( //(them)
-      <View style={styles.receivedMessageContainer}>
-        <View style={styles.receivedMessageBubble}>
+  if (String(currentUser) === String(message?.userId)) {
+    // console.log(currentUser?.userId);
+    // console.log(message?.userId);
+    return ( //(you)
+      <View style={styles.sentMessageContainer}>
+        <View style={styles.sentMessageBubble}>
           <Text style={styles.messageText}>{message?.text}</Text>
           <Text style={styles.timestamp}>{formattedTime}</Text>
         </View>
       </View>
     );
   } else {
-    return ( //(you)
-      <View style={styles.sentMessageContainer}>
-        <View style={styles.sentMessageBubble}>
+    // console.log(currentUser?.userId);
+    // console.log(message?.userId);
+    return ( //(them)
+      <View style={styles.receivedMessageContainer}>
+        <View style={styles.receivedMessageBubble}>
           <Text style={styles.messageText}>{message?.text}</Text>
           <Text style={styles.timestamp}>{formattedTime}</Text>
         </View>

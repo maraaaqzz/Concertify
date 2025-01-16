@@ -12,7 +12,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import PropTypes from 'prop-types';
 import { FIRESTORE_DB } from '../services/firebaseConfig';
 import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
-import { useGlobalContext } from './GlobalContext'; 
+import { useGlobalContext } from '../app/GlobalContext';
 import { useRouter } from 'expo-router'; 
 
 const screenHeight = Dimensions.get('window').height;
@@ -55,13 +55,15 @@ const ProfileView = ({
       } else {
         console.log("Room already exists with ID:", roomId);
       }
+      router.dismissAll();
       router.push({ pathname: "/(user)/chatRoom", 
           params: { 
           roomId: String(roomId),
           username: String(selectedUser.username),
           profileImage: selectedUser.profileImage ? String(selectedUser.profileImage) : ""
-        } 
+        }
       });
+      
       closeProfileView();
     } catch (error) {
       console.error("Error handling message:", error);
