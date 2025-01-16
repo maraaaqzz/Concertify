@@ -137,62 +137,65 @@ const HomeTab = () => {
   return (
     <LinearGradient colors={['#040306', '#131624']} style={{ flex: 1 }}>
       <SafeAreaView className="flex my-6 px-4 space-y-6">
-      <ScrollView>
-        <View className="flex justify-between items-start flex-wrap flex-row mb-6">
-          <TouchableOpacity onPress={() => navigateIfLoggedOut('./profile')} style={{ marginBottom: 5, marginRight: 5 }}>
-            <MaterialCommunityIcons name="account-circle" size={30} color="white" />
-          </TouchableOpacity>
-          <View style={styles.greetingContainer}>
-            <Text style={styles.greetingText}>{greetingMessage()}</Text>
-            {state.isAuth && <Text style={styles.nameText}>{state.user?.name}</Text>}
-          </View>
-          <TouchableOpacity onPress={() => navigateIfLoggedOut('./chat')} style={{ marginBottom: 5, marginRight: 5 }}>
-            <Ionicons name="chatbubble-ellipses" size={30} color="white" />
-          </TouchableOpacity>
-        </View>
-        
-        <SearchInput/>
+        <ScrollView>
+          <View className="flex justify-between items-start flex-wrap flex-row mb-6">
+            <TouchableOpacity onPress={() => navigateIfLoggedOut('./profile')} style={{ marginBottom: 5, marginRight: 5 }}>
+              <MaterialCommunityIcons name="account-circle" size={30} color="white" />
+            </TouchableOpacity>
 
-          <View>
-            <View style={styles.titleContainer}>
-              <Text style={styles.titleText}>Your Concerts</Text>
+            <View style={styles.greetingContainer}>
+              <Text style={styles.greetingText}>{greetingMessage()}</Text>
+              {state.isAuth && <Text style={styles.nameText}>{state.user?.name}</Text>}
             </View>
-            {state.isAuth ? (
-              userConcerts.length > 0 ? (
-                <SectionContainer data={userConcerts} />
+
+            <TouchableOpacity onPress={() => navigateIfLoggedOut('./chat')} style={{ marginBottom: 5, marginRight: 5 }}>
+              <Ionicons name="chatbubble-ellipses" size={30} color="white" />
+            </TouchableOpacity>
+          </View>
+          
+          <SearchInput/>
+
+            <View>
+              <View style={styles.titleContainer}>
+                <Text style={styles.titleText}>Your Concerts</Text>
+              </View>
+              
+              {state.isAuth ? (
+                userConcerts.length > 0 ? (
+                  <SectionContainer data={userConcerts} />
+                ) : (
+                  <View style={styles.addConcertsMessageContainer}>
+                    <Text style={styles.addConcertMessageText}>Check-in to concerts!</Text>
+                  </View>
+                )
               ) : (
                 <View style={styles.addConcertsMessageContainer}>
-                  <Text style={styles.addConcertMessageText}>Check-in to concerts!</Text>
+                  <Text style={styles.addConcertMessageText}>Log-in to see your concerts!</Text>
                 </View>
-              )
-            ) : (
-              <View style={styles.addConcertsMessageContainer}>
-                <Text style={styles.addConcertMessageText}>Log-in to see your concerts!</Text>
+              )}
+            </View>
+
+            <ScrollView>
+              <View style={styles.titleContainer}>
+                <Text style={styles.titleText}>Categories</Text>
               </View>
-            )}
-          </View>
+              <EntityList entities={categories} type="category"/>
+            </ScrollView>
 
-          <ScrollView>
-            <View style={styles.titleContainer}>
-              <Text style={styles.titleText}>Categories</Text>
+            <ScrollView>
+              <View style={styles.titleContainer}>
+                <Text style={styles.titleText}>Genres</Text>
+              </View>
+              <EntityList entities={genres} type="genre"/>
+            </ScrollView>
+              
+            <View>
+              <View style={styles.titleContainer}>
+                <Text style={styles.titleText}>Upcoming Concerts</Text>
+              </View>
+              <SectionContainer data={concerts} />
             </View>
-            <EntityList entities={categories} type="category"/>
-          </ScrollView>
-
-          <ScrollView>
-            <View style={styles.titleContainer}>
-              <Text style={styles.titleText}>Genres</Text>
-            </View>
-            <EntityList entities={genres} type="genre"/>
-          </ScrollView>
-            
-          <View>
-            <View style={styles.titleContainer}>
-              <Text style={styles.titleText}>Upcoming Concerts</Text>
-            </View>
-            <SectionContainer data={concerts} />
-          </View>
-      
+        
         </ScrollView>
       </SafeAreaView>
     </LinearGradient>
@@ -235,14 +238,13 @@ const styles = StyleSheet.create({
     //marginLeft: -100
   },
   greetingText: {
-    fontSize: 26, // Larger size for the greeting
-    fontWeight: 'bold', // Bold greeting
+    fontSize: 26, 
+    fontWeight: 'bold',
     color: 'white',
-
   },
   nameText: {
-    fontSize: 20, // Smaller size for the name
-    fontWeight: 'normal', // Normal weight for the name
+    fontSize: 20, 
+    fontWeight: 'normal', 
     color: 'white',
     marginTop: 2
   },

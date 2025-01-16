@@ -1,6 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
 import React from 'react';
-import { useGlobalContext } from '../app/GlobalContext';
 
 // Important to note that in the database, the chat's id are composed like so: "selected user's id + _ + current user's (you) id"
 
@@ -12,7 +11,7 @@ export default function MessageItem({ message, currentUser }) {
   if (String(currentUser) === String(message?.userId)) {
     // console.log(currentUser?.userId);
     // console.log(message?.userId);
-    return ( //(you)
+    return ( 
       <View style={styles.sentMessageContainer}>
         <View style={styles.sentMessageBubble}>
           <Text style={styles.messageText}>{message?.text}</Text>
@@ -23,7 +22,7 @@ export default function MessageItem({ message, currentUser }) {
   } else {
     // console.log(currentUser?.userId);
     // console.log(message?.userId);
-    return ( //(them)
+    return ( 
       <View style={styles.receivedMessageContainer}>
         <View style={styles.receivedMessageBubble}>
           <Text style={styles.messageText}>{message?.text}</Text>
@@ -67,6 +66,6 @@ const styles = StyleSheet.create({
     color: '#ccc',
     fontSize: 12,
     marginTop: 5,
-    alignSelf: 'flex-end', // Align timestamp to the bottom-right of the message
+    alignSelf: 'flex-end', 
   },
 });

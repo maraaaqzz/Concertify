@@ -111,17 +111,6 @@ const ProfileView = ({
           </TouchableOpacity>
           <Text style={styles.buttonText}>Message</Text>
         </View>
-
-        {/* View Profile Button */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={styles.dmButton}
-            onPress={() => {/* TO DO: implement profile view */}}
-          >
-            <AntDesign name="user" size={24} color="white" />
-          </TouchableOpacity>
-          <Text style={styles.buttonText}>View Profile</Text>
-        </View>
       </View>
     </Animated.View>
   );
