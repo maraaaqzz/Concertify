@@ -134,7 +134,7 @@ const UserList = ({
                 style={styles.userItem}
               >
                 <Image
-                  source={{ uri: item.profileImage }}
+                  source={{ uri: String(item.profileImage) }}
                   style={styles.profilePicture}
                 />
                 <Text style={styles.userName}>{item.username}</Text>

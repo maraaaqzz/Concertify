@@ -62,6 +62,7 @@ const EmergencyTab = () => {
                 <Text style={styles.buttonText}>NEED WATER</Text>
               </TouchableOpacity>
             </View>
+
             <View style={styles.row}>
               <TouchableOpacity
                 style={styles.button}
@@ -76,6 +77,7 @@ const EmergencyTab = () => {
                 <Text style={styles.buttonText}>GOT LOST</Text>
               </TouchableOpacity>
             </View>
+
             <View style={styles.row}>
               <TouchableOpacity
                 style={styles.button}
@@ -91,6 +93,7 @@ const EmergencyTab = () => {
               </TouchableOpacity>
             </View>
           </ScrollView>
+          
           <TouchableOpacity
             style={styles.closeButton}
             onPress={() => updateEm(false)}

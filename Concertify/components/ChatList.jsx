@@ -61,7 +61,7 @@ export default function ChatList({ loggedInUserId }) {
         return 0;
       });
 
-      setRooms(chatRooms); // Update the state in the background
+      setRooms(chatRooms); 
     } catch (error) {
       console.error('Error fetching chat rooms:', error);
     }
