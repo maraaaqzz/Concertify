@@ -15,7 +15,7 @@ const FloatingButton = () => {
   return (
     <View style={styles.floatingContainer}>
       <TouchableOpacity style={styles.floatingButton} onPress={handleEmergencyPress}>
-        <Image style={{ width: 50, height: 50 }} source={images.emergency} />
+        <Image style={{ width: 65, height: 65 }} source={images.emergency} />
       </TouchableOpacity>
     </View>
   );
@@ -24,7 +24,7 @@ const FloatingButton = () => {
 const styles = StyleSheet.create({
   floatingContainer: {
     position: 'absolute',
-    bottom: 180,
+    bottom: 100,
     right: -10,
     zIndex: 1000,
   },

@@ -78,6 +78,20 @@ const TabsLayout = () => {
                 }}
             />
 
+            <Tabs.Screen 
+                name="emergencies"
+                options={{
+                    headerShown: false,
+                    tabBarIcon: ({color, focused}) => (
+                        <TabIcon 
+                            icon={icons.emergency}
+                            color={color}
+                            focused={focused}
+                        />
+                    )
+                }}
+            />
+
         </Tabs>
     </>
   )

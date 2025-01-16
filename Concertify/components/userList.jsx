@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+// components/UserList.jsx
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Animated,
   FlatList,
@@ -8,63 +9,65 @@ import {
   TouchableOpacity,
   View,
   Dimensions,
-  PanResponder,
   Easing,
   Modal,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import ProfileView from './ProfileView'; 
 
 const screenHeight = Dimensions.get('window').height;
-const SHEET_HEIGHT = screenHeight * 0.3; // 30% of the screen
+const SHEET_HEIGHT = screenHeight * 0.45; 
 
 const UserList = ({
   isVisible = false,
-  slideAnim = new Animated.Value(Dimensions.get('window').width),
+  slideAnim,
   users = [],
   onClose = () => {},
+  loggedInUserConcerts = [],
 }) => {
   const [selectedUser, setSelectedUser] = useState(null);
-
+  const [isAnimating, setIsAnimating] = useState(false); 
+  const [mutualConcertsCount, setMutualConcertsCount] = useState(0); // for mutual concerts count
   const translateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
-
   const isProfileOpen = useRef(false);
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (evt, gestureState) =>
-        Math.abs(gestureState.dy) > 5,
-      onPanResponderMove: (evt, gestureState) => {
-        if (gestureState.dy > 0) {
-          translateY.setValue(gestureState.dy);
-        }
-      },
-      onPanResponderRelease: (evt, gestureState) => {
-        if (gestureState.dy > 100) {
-          closeProfileView();
-        } else {
-          Animated.spring(translateY, {
-            toValue: 0,
-            useNativeDriver: true,
-          }).start();
-        }
-      },
-    })
-  ).current;
+  const internalSlideAnim = useRef(slideAnim || new Animated.Value(Dimensions.get('window').width)).current;
 
-  const handleUserPress = (user) => {
-    setSelectedUser(user);
-    isProfileOpen.current = true;
+  // Handle user press to open profile
+  const handleUserPress = useCallback(
+    (user) => {
+      if (isAnimating || (isProfileOpen.current && selectedUser?.id === user.id)) return;
 
-    Animated.timing(translateY, {
-      toValue: 0,
-      duration: 300,
-      //easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
-  };
+      setSelectedUser(user);
+      isProfileOpen.current = true;
 
-  const closeProfileView = () => {
+      // Calculate mutual concerts
+      const mutualConcerts = user.concerts?.filter((concert) =>
+        loggedInUserConcerts.includes(concert)
+      ) || [];
+      setMutualConcertsCount(mutualConcerts.length);
+
+      setIsAnimating(true);
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 300,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start(() => {
+        setIsAnimating(false);
+      });
+    },
+    [isAnimating, selectedUser, loggedInUserConcerts, translateY]
+  );
+
+  const closeProfileView = useCallback(() => {
+    setSelectedUser(null);
+    if (isAnimating || !isProfileOpen.current) {
+      console.log('No animation to close or already animating.');
+      return;
+    }
     isProfileOpen.current = false;
+    setIsAnimating(true);
 
     Animated.timing(translateY, {
       toValue: SHEET_HEIGHT,
@@ -73,13 +76,16 @@ const UserList = ({
       useNativeDriver: true,
     }).start(() => {
       setSelectedUser(null);
+      setIsAnimating(false);
     });
-  };
+  }, [isAnimating, translateY]);
 
   useEffect(() => {
     if (!isVisible) {
       translateY.setValue(SHEET_HEIGHT);
       setSelectedUser(null);
+      setIsAnimating(false);
+      isProfileOpen.current = false;
     }
   }, [isVisible, translateY]);
 
@@ -90,20 +96,32 @@ const UserList = ({
       transparent
       visible={isVisible}
       animationType="fade"
-      onRequestClose={onClose}
+      onRequestClose={() => {
+        if (isProfileOpen.current) {
+          closeProfileView();
+        } else {
+          onClose();
+        }
+      }}
     >
       <View style={styles.modalContainer}>
         <TouchableOpacity
           style={styles.viewOverlay}
           activeOpacity={1}
-          onPress={onClose}
+          onPress={() => {
+            if (isProfileOpen.current) {
+              closeProfileView();
+            } else {
+              onClose();
+            }
+          }}
         />
 
         {/* User List */}
         <Animated.View
           style={[
             styles.userListContainer,
-            { transform: [{ translateX: slideAnim }] },
+            { transform: [{ translateX: internalSlideAnim }] },
           ]}
         >
           <Text style={styles.userListTitle}>Users</Text>
@@ -116,7 +134,7 @@ const UserList = ({
                 style={styles.userItem}
               >
                 <Image
-                  source={{ uri: item.profileImage }}
+                  source={{ uri: String(item.profileImage) }}
                   style={styles.profilePicture}
                 />
                 <Text style={styles.userName}>{item.username}</Text>
@@ -135,27 +153,12 @@ const UserList = ({
 
         {/* Profile View */}
         {selectedUser && (
-          <Animated.View
-            style={[
-              styles.profileView,
-              {
-                transform: [{ translateY: translateY }],
-              },
-            ]}
-          >
-            <View style={styles.handleBarContainer} {...panResponder.panHandlers}>
-              <View style={styles.handleBar} />
-            </View>
-
-            <Image
-              source={{ uri: selectedUser.profileImage }}
-              style={styles.profilePictureLarge}
-            />
-            <Text style={styles.profileUserName}>{selectedUser.username}</Text>
-            <TouchableOpacity style={styles.dmButton}>
-              <Text style={styles.dmButtonText}>DM</Text>
-            </TouchableOpacity>
-          </Animated.View>
+          <ProfileView
+            selectedUser={selectedUser}
+            mutualConcertsCount={mutualConcertsCount}
+            translateY={translateY}
+            closeProfileView={closeProfileView}
+          />
         )}
       </View>
     </Modal>
@@ -170,9 +173,12 @@ UserList.propTypes = {
       id: PropTypes.string.isRequired,
       username: PropTypes.string.isRequired,
       profileImage: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      concerts: PropTypes.array,
     })
   ),
   onClose: PropTypes.func,
+  loggedInUserConcerts: PropTypes.array,
 };
 
 const styles = StyleSheet.create({
@@ -185,7 +191,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     right: 0,
     width: '70%',
-    backgroundColor: '#1A1A1D',
+    backgroundColor: 'rgb(25, 25, 25)',
     padding: 20,
     borderTopLeftRadius: 20,
     borderBottomLeftRadius: 20,
@@ -197,11 +203,12 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   userListTitle: {
-    fontSize: 25,
+    fontSize: 30,
     color: 'white',
     fontWeight: 'bold',
     marginBottom: 20,
     marginTop: 45,
+    textAlign: 'center', // Center the title
   },
   userItem: {
     flexDirection: 'row',
@@ -243,86 +250,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontStyle: 'italic',
   },
-
   viewOverlay: {
     position: 'absolute',
     top: 0,
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.59)',
     zIndex: 0,
-  },
-
-  profileView: {
-    position: 'absolute',
-    left: 0,
-    bottom: 0,
-    width: '100%',
-    height: SHEET_HEIGHT,
-    backgroundColor: '#1A1A1D',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-
-    alignItems: 'center',
-
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
-    zIndex: 2,
-  },
-
-  handleBarContainer: {
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-  },
-  handleBar: {
-    width: 40,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: '#fff',
-  },
-
-  profilePictureLarge: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    marginTop: 20,
-    marginBottom: 10,
-    borderColor: '#5B4E75',
-    borderWidth: 2,
-  },
-  profileUserName: {
-    fontSize: 18,
-    color: 'white',
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  dmButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#5B4E75',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 25,
-    marginTop: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  dmIcon: {
-    marginRight: 10,
-  },
-  dmButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
   },
 });
 
