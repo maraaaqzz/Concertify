@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, ImageBackground, View } from "react-native";
 import { useRouter } from "expo-router";
 
+// category/ genre card 
 export const EntityCard = ({ entity, type }) => {
   const router = useRouter();
 

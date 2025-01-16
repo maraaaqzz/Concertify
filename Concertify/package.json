@@ -33,6 +33,7 @@
     "expo-system-ui": "~4.0.7",
     "expo-web-browser": "~14.0.2",
     "firebase": "^11.0.1",
+    "fs": "^0.0.1-security",
     "fuse": "^0.12.1",
     "fuse.js": "^7.0.0",
     "prop-types": "^15.8.1",

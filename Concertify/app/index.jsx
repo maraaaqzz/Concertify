@@ -7,10 +7,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Index() {
   const fadeAnim = useRef(new Animated.Value(0)).current; 
-  const scaleAnim = useRef(new Animated.Value(0.8)).current; // For zoom-in effect
+  const scaleAnim = useRef(new Animated.Value(0.8)).current; 
   const router = useRouter();
 
-  //Fade-in and scale animations for the entrance effect
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -21,7 +20,7 @@ export default function Index() {
       Animated.timing(scaleAnim, {
         toValue: 1,
         duration: 5000,
-        easing: Easing.bounce, // Add a bounce effect
+        easing: Easing.bounce,
         useNativeDriver: true,
       })
     ]).start(() => {

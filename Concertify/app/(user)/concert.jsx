@@ -96,10 +96,10 @@ const Concert = () => {
             <View style={styles.infoRow}>
               <Icon name="clock-outline" size={22} color="#fff" />
               <Text style={styles.infoText}>
-        {concertDetails.date
-          ? `${formattedDate} UTC+2`
-          : 'Date not available'}
-      </Text>
+                {concertDetails.date
+                  ? `${formattedDate} UTC+2`
+                  : 'Date not available'}
+              </Text>
             </View>
           </View>
 
