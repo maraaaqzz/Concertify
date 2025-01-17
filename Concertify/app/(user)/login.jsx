@@ -2,21 +2,19 @@ import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { LinearGradient } from "expo-linear-gradient";
-import { Text, TextInput, View, StyleSheet, ImageBackground, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { Text, TextInput, View, StyleSheet, ImageBackground, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { images } from "../../constants";
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
-import { FIREBASE_AUTH, FIRESTORE_DB } from '../../services/firebaseConfig';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { FIREBASE_AUTH, FIRESTORE_DB} from '../../services/firebaseConfig'
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword} from  'firebase/auth'
 import { setDoc, doc } from 'firebase/firestore';
-import { useGlobalContext } from '../GlobalContext'
 
 const LogIn = () => {
-  const { updateUser, updateAuth } = useGlobalContext(); // Access the updateUser function from context
+  const [isSignIn, setIsSignIn] = useState(true); 
 
-  const [isSignIn, setIsSignIn] = useState(true);
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
-  const [name, setName] = useState('');
+  const [name, setName] = useState('')
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   
@@ -29,31 +27,28 @@ const LogIn = () => {
       try{
         const userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
         const user = userCredential.user;
+        //router.dismissAll();
         router.replace('/home');
       }catch (error) {
-        if (error.code === 'auth/invalid-credential') {
-          Alert.alert('Error', 'Invalid email or password');
-        } else {
-          Alert.alert('Error', 'Something went wrong. Please try again.');
-        }
+        console.error("Error signing in: ", error);
       }finally{
         setLoading(false)
       }
   }
 
-  const submitSignUp = async () => {
-    if (!username || !email || !password) {
-      Alert.alert('Error', 'Please fill in all the fields');
-      return;
+  const submitSignUp = async() => {
+    if(!username || !email || !password){
+      Alert.alert('Error', 'Please fill in all the fields')
+      return 
     }
     setLoading(true);
-    try {
+    try{
       const userCredential = await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
       const user = userCredential.user;
 
       try {
-        await setDoc(doc(FIRESTORE_DB, "users", user.uid), {
-          userId: user.uid,
+        await setDoc(doc(FIRESTORE_DB, "users", userCredential?.user?.uid), {
+          userId: userCredential?.user?.uid,
           username: username,
           name: name,
           email: email,
@@ -63,157 +58,190 @@ const LogIn = () => {
           favArtists: '',
           spotifyToken: '',
           spotifyTokenExpiry: '',
-          createdAt: new Date(),
+          createAt: new Date(),
         });
       }catch (e){
           console.error("Error adding document: ", e)
-          Alert.alert('Error', 'Failed to save user data. Please try again.');
       }
-
-      // Update global context
-      updateUser({
-        uid: user.uid,
-        name: name,
-        username: username,
-      });
-
-      updateAuth({isAuth: true});
-
-      console.log("User created and data added to firebase");
+      console.log("User created and data added to firebase")
       router.replace('/home');
     }catch(error){
-      if (error.code === 'auth/email-already-in-use') {
-        Alert.alert('Error', 'The email is already in use by another account');
-      } else if (error.code === 'auth/weak-password') {
-        Alert.alert('Error', 'Password should be at least 6 characters');
-      } else {
-        Alert.alert('Error', 'Failed to create an account. Please try again.');
-      }
-      
+      console.error("Error signing up", error.message)
     }finally{
       setLoading(false)
     }
+  }
+
+  const [showPassword, setShowPassword] = useState(true);
+  const toggleShowPassword = () => {
+      setShowPassword(!showPassword);
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ImageBackground source={images.crowd} style={styles.background}>
-        <LinearGradient colors={["transparent", "#040306"]} style={styles.gradientOverlay} />
+      <ImageBackground
+        source={images.crowd}
+        style={styles.background}
+      >
+        <LinearGradient 
+          colors={["transparent", "#040306"]}
+          style={styles.gradientOverlay}
+        />
       </ImageBackground>
-
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.contentContainer}>
         <View style={styles.tabContainer}>
-          <TouchableOpacity onPress={() => setIsSignIn(true)} style={[styles.tab, isSignIn && styles.activeTab]}>
+          <TouchableOpacity 
+            onPress={() => setIsSignIn(true)} 
+            style={[styles.tab, isSignIn && styles.activeTab]}
+          >
             <Text style={[styles.tabText, isSignIn && styles.activeTabText]}>SIGN IN</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => setIsSignIn(false)} style={[styles.tab, !isSignIn && styles.activeTab]}>
+          <TouchableOpacity 
+            onPress={() => setIsSignIn(false)} 
+            style={[styles.tab, !isSignIn && styles.activeTab]}
+          >
             <Text style={[styles.tabText, !isSignIn && styles.activeTabText]}>SIGN UP</Text>
           </TouchableOpacity>
         </View>
-        
         <ScrollView>
-          <Text style={styles.title}>{isSignIn ? "Login to Concertify!" : "Sign Up for Concertify!"}</Text>
+        <Text style={styles.title}>{isSignIn ? "Login to Concertify!" : "Sign Up for Concertify!"}</Text>
 
-          {isSignIn ? (
-            <>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  value={email}
-                  style={styles.input}
-                  placeholder="Email"
-                  placeholderTextColor="#999"
-                  onChangeText={(text) => setEmail(text)}
-                />
-                <FontAwesome name="envelope" size={20} color="#999" style={styles.icon} />
-              </View>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  value={password}
-                  style={styles.input}
-                  placeholder="Password"
-                  placeholderTextColor="#999"
-                  onChangeText={(text) => setPassword(text)}
-                  secureTextEntry={showPassword}
-                />
-                <MaterialIcons
-                  name={showPassword ? 'visibility-off' : 'visibility'}
-                  size={20}
-                  color="#999"
-                  style={styles.icon}
-                  onPress={toggleShowPassword}
-                />
-              </View>
-              <TouchableOpacity onPress={submitSignin} isLoading={loading} style={styles.loginButton}>
-                <Text style={styles.loginButtonText}>LOG IN</Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  value={username}
-                  style={styles.input}
-                  placeholder="Username"
-                  placeholderTextColor="#999"
-                  onChangeText={(text) => setUsername(text)}
-                />
-                <FontAwesome name="user" size={20} color="#999" style={styles.icon} />
-              </View>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  value={name}
-                  style={styles.input}
-                  placeholder="Name"
-                  placeholderTextColor="#999"
-                  onChangeText={(text) => setName(text)}
-                />
-                <FontAwesome name="user" size={20} color="#999" style={styles.icon} />
-              </View>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  value={email}
-                  style={styles.input}
-                  placeholder="Email"
-                  placeholderTextColor="#999"
-                  onChangeText={(text) => setEmail(text)}
-                />
-                <FontAwesome name="envelope" size={20} color="#999" style={styles.icon} />
-              </View>
-              <View style={styles.inputContainer}>
-                <TextInput
-                  value={password}
-                  style={styles.input}
-                  placeholder="Password"
-                  placeholderTextColor="#999"
-                  onChangeText={(text) => setPassword(text)}
-                  secureTextEntry={showPassword}
-                />
-                <MaterialIcons
-                  name={showPassword ? 'visibility-off' : 'visibility'}
-                  size={20}
-                  color="#999"
-                  style={styles.icon}
-                  onPress={toggleShowPassword}
-                />
-              </View>
-              <TouchableOpacity onPress={submitSignUp} style={styles.loginButton}>
-                <Text style={styles.loginButtonText}>SIGN UP</Text>
-              </TouchableOpacity>
-            </>
-          )}
+        {isSignIn ? 
+        (
+          // sign in 
+          <>
+          
+            <View style={styles.inputContainer}>
+              <TextInput 
+                value={email}
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor="#999"
+                onChangeText={(text) => setEmail(text)}
+              />
+              <FontAwesome name="envelope" size={20} color="#999" style={styles.icon} />
+            </View>
 
-          <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>{isSignIn ? "Don't have an account?" : "Already have an account?"}</Text>
-            <TouchableOpacity onPress={() => setIsSignIn(!isSignIn)} style={styles.signupLink}>
-              <Text style={styles.signupLink}>{isSignIn ? "Sign up" : "Sign in"}</Text>
+            <View style={styles.inputContainer}>
+              <TextInput 
+                value={password}
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor="#999"
+                onChangeText={(text) => setPassword(text)}
+                secureTextEntry={showPassword}
+              />
+              <MaterialIcons 
+                name={showPassword ? 'visibility-off' : 'visibility'}
+                size={20} 
+                color="#999" 
+                style={styles.icon}
+                onPress={toggleShowPassword}
+              />
+            </View>
+            <TouchableOpacity 
+              onPress={submitSignin}
+              isLoading={loading}
+              style={styles.loginButton}>
+              <Text style={styles.loginButtonText}>LOG IN</Text>
             </TouchableOpacity>
-          </View>
+          </>
+        ) : 
+        (
+          // sign up 
+          <>
+            <View style={styles.inputContainer}>
+              <TextInput 
+                value={username}
+                style={styles.input}
+                placeholder="Username"
+                placeholderTextColor="#999"
+                onChangeText={(text) => setUsername(text)}
+              />
+              <FontAwesome 
+                name="user" 
+                size={20} 
+                color="#999" 
+                style={styles.icon} 
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <TextInput 
+                value={name}
+                style={styles.input}
+                placeholder="Name"
+                placeholderTextColor="#999"
+                onChangeText={(text) => setName(text)}
+              />
+              <FontAwesome 
+                name="user" 
+                size={20} 
+                color="#999" 
+                style={styles.icon} 
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <TextInput 
+                value={email}
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor="#999"
+                onChangeText={(text) => setEmail(text)}
+              />
+              <FontAwesome 
+                name="envelope" 
+                size={20} 
+                color="#999" 
+                style={styles.icon}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <TextInput 
+                value={password}
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor="#999"
+                onChangeText={(text) => setPassword(text)}
+                secureTextEntry={showPassword}
+              />
+              <MaterialIcons 
+                name={showPassword ? 'visibility-off' : 'visibility'}
+                size={20} 
+                color="#999" 
+                style={styles.icon}
+                onPress={toggleShowPassword}
+              />
+            </View>
+
+            <TouchableOpacity
+              onPress={submitSignUp} 
+              style={styles.loginButton}>
+              <Text style={styles.loginButtonText}>SIGN UP</Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        <View style={styles.signupContainer}>
+          <Text style={styles.signupText}>
+            {isSignIn ? "Don't have an account?" : "Already have an account?"} 
+          </Text>
+          <TouchableOpacity 
+            onPress={() => setIsSignIn(!isSignIn)} style={styles.signupLink}>
+            <Text style={styles.signupLink}>
+              {isSignIn ? "Sign up" : "Sign in"}
+            </Text>
+          </TouchableOpacity>
+        </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
-  );
-};
+    
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
